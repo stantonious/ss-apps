@@ -8,7 +8,7 @@ Wants=rabbitmq-server.service
 [Service]
 User=pi
 Type=simple
-ExecStart=/usr/local/start-ss-inf.sh
+ExecStart=start-ss-inf.sh
 
 [Install]
 WantedBy=multi-user.target
