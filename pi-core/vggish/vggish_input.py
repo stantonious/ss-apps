@@ -16,7 +16,8 @@
 """Compute input examples for VGGish from audio waveform."""
 
 import numpy as np
-import resampy
+# RPI issue libf77blas.so.3: cannot open shared object file:
+#import resampy
 from scipy.io import wavfile
 
 from vggish import mel_features
