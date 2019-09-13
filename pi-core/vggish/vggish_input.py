@@ -82,7 +82,6 @@ def wavfile_to_examples(wav_file):
       See waveform_to_examples.
     """
     sr, wav_data = wavfile.read(wav_file)
-    print 'wd shape', wav_data.shape
     assert wav_data.dtype == np.int16, 'Bad sample type: %r' % wav_data.dtype
     samples = wav_data / 32768.0  # Convert to [-1.0, +1.0]
     return waveform_to_examples(samples, sr)
