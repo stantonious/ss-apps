@@ -6,7 +6,7 @@ After=ss-inf.service
 [Service]
 User=pi
 Type=simple
-ExecStart=run_audio_playback.sh
+ExecStart=/usr/local/start-ss-audioplayback.sh
 
 [Install]
 WantedBy=multi-user.target

@@ -64,10 +64,10 @@ sudo curl -XGET -o ${audioset_dir}/class_labels_indices.csv "http://storage.goog
 
 #TODO - Install from clone above
 #install ss
-declare -a pkgs=("pi-apps/br" "pi-apps/inf" "pi-web/inf_gui" "pi-svc/audio_playback")
+declare -a pkgs=("pi-core" "pi-apps/br" "pi-apps/inf" "pi-web/inf_gui" "pi-svc/audio_playback")
 for i in "${pkgs[@]}"
 do
-	pip install git+https://git@bitbucket.org/stantonious/ss-apps.git#subdirectory="{i}"
+	pip install git+https://git@bitbucket.org/stantonious/ss-apps.git#subdirectory="${i}"
 done
 
 echo 'please reboot!'

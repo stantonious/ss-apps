@@ -8,7 +8,7 @@ Wants=rabbitmq-server.service
 [Service]
 User=pi
 Type=simple
-ExecStart=classifier.py
+ExecStart=/usr/local/start-ss-inf.sh
 
 [Install]
 WantedBy=multi-user.target
