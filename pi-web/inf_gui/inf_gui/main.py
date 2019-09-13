@@ -214,7 +214,7 @@ def poll_cpu():
     while True:
         time.sleep(1)
         proc = subprocess.Popen(["top", "-bn2"], stdout=subprocess.PIPE)
-        output = proc.stdout.read().split('\n')
+        output = proc.stdout.read().decode().split('\n')
         cpu_out = [_n for _n in output if 'Cpu' in _n]
         cpu_percent = [_n.split() for _n in cpu_out]
 

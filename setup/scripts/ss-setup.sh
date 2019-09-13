@@ -9,6 +9,7 @@ sudo apt-get install -y python-pip python3-virtualenv
 mkdir ~/venvs && cd ~/venvs
 python3 /usr/lib/python3/dist-packages/virtualenv.py  --system-site-packages -p /usr/bin/python3 ss
 echo 'source ~/venvs/ss/bin/activate' >> ~/.bashrc
+source ~/venvs/ss/bin/activate
 
 tmp_folder=/tmp/dumping_ground
 mkdir ${tmp_folder}
@@ -20,6 +21,9 @@ git clone https://bitbucket.org/stantonious/ss-apps.git
 sudo cp ss-apps/setup/systemd/*.service /lib/systemd/system/
 sudo cp ss-apps/setup/scripts/*.sh /usr/local/bin
 sudo systemctl daemon-reload
+sudo systemctl enable ss-inf
+#sudo systemctl enable ss-gui
+#sudo systemctl enable ss-audioplayback
 
 #install tensorflow lite
 wget -O tensorflow-1.14.0-cp37-cp37m-linux_armv7l.whl https://github.com/PINTO0309/Tensorflow-bin/raw/master/tensorflow-1.14.0-cp37-cp37m-linux_armv7l.whl
@@ -31,11 +35,10 @@ pip3 install tensorflow-1.14.0-cp37-cp37m-linux_armv7l.whl
 pip install pyaudio bokeh flask sqlalchemy pika gunicorn resampy
 
 #pulseaudio
-sudo apt-get -y upgrade alsa-utils
+sudo apt-get install -y --only-upgrade alsa-utils
 sudo usermod -a -G audio pi
 
 #install seeed 4-mic array
-sudo apt-get upgrade
 git clone https://github.com/respeaker/seeed-voicecard.git
 pushd seeed-voicecard
 sudo ./install.sh
@@ -62,7 +65,7 @@ sudo curl -XGET -o ${ss_dir}/soundscape.tflite "https://www.googleapis.com/stora
 sudo curl -XGET -o ${ss_dir}/vggish.tflite "https://www.googleapis.com/storage/v1/b/ss-models/o/vggish.tflite?alt=media"
 sudo curl -XGET -o ${audioset_dir}/class_labels_indices.csv "http://storage.googleapis.com/us_audioset/youtube_corpus/v1/csv/class_labels_indices.csv"
 
-#TODO - Install from clone above
+#TODO - Install from clone above?
 #install ss
 declare -a pkgs=("pi-core" "pi-apps/br" "pi-apps/inf" "pi-web/inf_gui" "pi-svc/audio_playback")
 for i in "${pkgs[@]}"
