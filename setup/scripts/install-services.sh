@@ -1,5 +1,6 @@
 #!/bin/sh
 
+source ~/venvs/ss/bin/activate
 
 tmp_folder=/tmp/dumping_ground
 mkdir ${tmp_folder}
