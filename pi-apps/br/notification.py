@@ -7,12 +7,14 @@ import argparse
 import time
 import json
 import sys
+import os
 import pika
 import numpy as np
 from twilio.rest import Client
 from business_rules import variables, actions, run_all, fields
 
-parser = argparse.ArgumentParser(description='br app')
+parser = argparse.ArgumentParser(
+    description='send notification for provided inference')
 
 parser.add_argument('-s', '--sleep-action-duration', type=int, required=True)
 parser.add_argument('-e', '--event-window', type=int, required=True)
@@ -20,15 +22,16 @@ parser.add_argument('-t', '--event-num-threshold', type=int, required=True)
 parser.add_argument('-c', '--confidence-threshold', type=float, required=True)
 parser.add_argument('-i', '--index', type=int, required=True)
 
-account_sid = 'ACeea985d7a5d8732538f994ee1509596c'
-auth_token = '8e7e151c5cc07007afd2b3df7bb6ead4'
+account_sid = os.environ.get('TWILIO_SID')
+auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
 client = Client(account_sid, auth_token)
 
 import csv
 class_mapping = {}
-class_mapping_csv = csv.DictReader(open('/opt/audioset/class_labels_indices.csv'))
+class_mapping_csv = csv.DictReader(
+    open('/opt/audioset/class_labels_indices.csv'))
 for _n in class_mapping_csv:
-    class_mapping[int(_n['index'])] = _n['display_name']   
+    class_mapping[int(_n['index'])] = _n['display_name']
 
 
 class Inference(object):
@@ -79,14 +82,13 @@ class InferenceActs(actions.BaseActions):
     def __init__(self, tracked_inference):
         self.tracked_inference = tracked_inference
 
-    
     actions.rule_action(params={"from_sms_number": fields.FIELD_TEXT,
                                 "to_sms_number": fields.FIELD_TEXT})
 
-
     @actions.rule_action(params={'size': fields.FIELD_NUMERIC})
     def record_audio(self, size):
-        connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+        connection = pika.BlockingConnection(
+            pika.ConnectionParameters('localhost'))
         channel = connection.channel()
         channel.queue_bind(queue='dump_commands', exchange='soundscene')
 
@@ -94,8 +96,8 @@ class InferenceActs(actions.BaseActions):
         d = dict(command='client',
                  size=size)
         channel.basic_publish(exchange='soundscene',
-        routing_key='dump_commands',
-        body=json.dumps(d))
+                              routing_key='dump_commands',
+                              body=json.dumps(d))
 
     def send_sms(self,
                  from_sms_number,
@@ -109,7 +111,6 @@ class InferenceActs(actions.BaseActions):
             to=to_sms_number
         )
         print message
-
 
     @actions.rule_action(params={})
     def reset_cnt(self):
@@ -171,7 +172,7 @@ if __name__ == '__main__':
         {'conditions': {
             'all': [tracked_idx, cnt_exceeded, act_win]
         },
-            'actions':[record_audio,sms_act, reset_act_win, reset_cnt]
+            'actions':[record_audio, sms_act, reset_act_win, reset_cnt]
         },
         {'conditions': {
             'all': [window_elapased]

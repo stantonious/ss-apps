@@ -11,9 +11,10 @@ import pika
 import numpy as np
 from business_rules import variables, actions, run_all, fields
 
-parser = argparse.ArgumentParser(description='br app')
+parser = argparse.ArgumentParser(
+    description='stop embedding processing for provided inference')
 
-parser.add_argument('-n', '--routes-window', type=int, required=True)
+parser.add_argument('-n', '--notification-window', type=int, required=True)
 parser.add_argument('-e', '--event-window', type=int, required=True)
 parser.add_argument('-t', '--event-num-threshold', type=int, required=True)
 parser.add_argument('-c', '--confidence-threshold', type=float, required=True)
