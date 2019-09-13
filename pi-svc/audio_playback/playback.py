@@ -4,13 +4,16 @@ from subprocess import Popen, PIPE
 import os
 app = Flask(__name__)
 
+rate = 16000
+channels = 2
+
 
 @app.route("/test", methods=['POST', 'GET'])
 def decode_raw():
-    url_name = '/tmp/client-dump.raw'
+    url_name = '/archive/client-{}-{}-dump.raw'.format(rate, channels)
 
-    popen_args = ['ffmpeg', '-f', 's16le', '-ac', '2', '-ar',
-                  '16000', '-i', url_name, '-f', 'mp3', 'pipe:1']
+    popen_args = ['ffmpeg', '-f', 's16le', '-ac', str(channels), '-ar',
+                  str(rate), '-i', url_name, '-f', 'mp3', 'pipe:1']
 
     proc = Popen(popen_args, stdout=PIPE)
 
