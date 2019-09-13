@@ -18,5 +18,6 @@ setup(name='ss_core',
       scripts=[],
       packages=[
           'inference',
-          'utils'],
+          'utils',
+          'vggish'],
       )

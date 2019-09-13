@@ -10,7 +10,6 @@ version = '1.0'
 setup(name='inf_app',
       version=version,
       install_requires=['ss_core',
-                        'ss_vggish'
                         ],
       description='''ss inference engine.
                  ''',
