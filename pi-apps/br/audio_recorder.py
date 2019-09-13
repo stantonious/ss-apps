@@ -79,7 +79,6 @@ class InferenceActs(actions.BaseActions):
         channel = connection.channel()
         channel.queue_bind(queue='dump_commands', exchange='soundscene')
 
-        print 'recording audio'
         d = dict(command='{}-{}-{}'.format(self.tracked_inference.idx,
                                            self.tracked_inference.last_conf,
                                            int(time.time())),
@@ -90,7 +89,6 @@ class InferenceActs(actions.BaseActions):
 
     @actions.rule_action(params={})
     def reset_cnt(self):
-        print 'resetting cnt', self.tracked_inference.cnt
         self.tracked_inference.cnt = 0
 
     @actions.rule_action(params={'duration': fields.FIELD_NUMERIC})
@@ -99,12 +97,10 @@ class InferenceActs(actions.BaseActions):
 
     @actions.rule_action(params={'duration': fields.FIELD_NUMERIC})
     def reset_act_window(self, duration):
-        print 'aw', time.time() + duration, time.time()
         self.tracked_inference.act_expire = time.time() + duration
 
     @actions.rule_action(params={})
     def inc_cnt(self):
-        print 'cnt', self.tracked_inference.cnt + 1
         self.tracked_inference.cnt += 1
 
 
@@ -154,8 +150,6 @@ if __name__ == '__main__':
         }
     ]
 
-    print 'br rules\n', json.dumps(rules)
-
     connection = pika.BlockingConnection(
         pika.ConnectionParameters('localhost'))
     channel = connection.channel()
@@ -171,7 +165,7 @@ if __name__ == '__main__':
             d = json.loads(body)
             idx = np.argwhere(np.asarray(d['idxs']) == args.class_idx)
             if idx.shape[0] < 1:
-                print 'no receiving inference for class idx', args.class_idx
+                print ('no receiving inference for class idx', args.class_idx)
                 sys.exit()
 
             conf = d['inferences'][idx[0, 0]]
@@ -184,7 +178,7 @@ if __name__ == '__main__':
                     stop_on_first_trigger=False)
 
         except Exception as e:
-            print 'exception ', e
+            print ('exception ', e)
 
     channel.basic_consume(queue=result.method.queue,
                           auto_ack=True,

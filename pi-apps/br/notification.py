@@ -26,7 +26,7 @@ parser.add_argument('-i', '--index', type=int, required=True)
 account_sid = os.environ.get('TWILIO_SID')
 auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
 client = Client(account_sid, auth_token)
-
+sms_num = os.environ.get('SMS_NUMBER')
 import csv
 class_mapping = {}
 class_mapping_csv = csv.DictReader(
@@ -93,7 +93,6 @@ class InferenceActs(actions.BaseActions):
         channel = connection.channel()
         channel.queue_bind(queue='dump_commands', exchange='soundscene')
 
-        print 'recording audio'
         d = dict(command='client',
                  size=size)
         channel.basic_publish(exchange='soundscene',
@@ -103,7 +102,8 @@ class InferenceActs(actions.BaseActions):
     def send_sms(self,
                  from_sms_number,
                  to_sms_number):
-        print 'sending sms'
+        print ('sending sms')
+
         message = client.messages.create(
             body='Received {} - {} times.\n{}'.format(class_mapping[self.tracked_inference.idx],
                                                       self.tracked_inference.cnt,
@@ -111,11 +111,9 @@ class InferenceActs(actions.BaseActions):
             from_=from_sms_number,
             to=to_sms_number
         )
-        print message
 
     @actions.rule_action(params={})
     def reset_cnt(self):
-        print 'resetting cnt', self.tracked_inference.cnt
         self.tracked_inference.cnt = 0
 
     @actions.rule_action(params={'duration': fields.FIELD_NUMERIC})
@@ -128,7 +126,6 @@ class InferenceActs(actions.BaseActions):
 
     @actions.rule_action(params={})
     def inc_cnt(self):
-        print 'cnt', self.tracked_inference.cnt + 1
         self.tracked_inference.cnt += 1
 
 
@@ -155,7 +152,7 @@ if __name__ == '__main__':
 
     sms_act = dict(name='send_sms',
                    params=dict(from_sms_number='+12057076255',
-                               to_sms_number='+13036691412'))
+                               to_sms_number=sms_num))
     reset_act_win = dict(name='reset_act_window',
                          params=dict(duration=args.sleep_action_duration))
     reset_win = dict(name='reset_window',
@@ -182,8 +179,6 @@ if __name__ == '__main__':
         }
     ]
 
-    print 'br rules\n', json.dumps(rules)
-
     connection = pika.BlockingConnection(
         pika.ConnectionParameters('localhost'))
     channel = connection.channel()
@@ -199,7 +194,7 @@ if __name__ == '__main__':
             d = json.loads(body)
             idx = np.argwhere(np.asarray(d['idxs']) == args.index)
             if idx.shape[0] < 1:
-                print 'no receiving inference for class idx', args.index
+                print ('no receiving inference for class idx', args.index)
                 sys.exit()
 
             conf = d['inferences'][idx[0, 0]]
@@ -212,7 +207,7 @@ if __name__ == '__main__':
                     stop_on_first_trigger=False)
 
         except Exception as e:
-            print 'exception ', e
+            print ('exception ', e)
 
     channel.basic_consume(queue=result.method.queue,
                           auto_ack=True,

@@ -71,10 +71,6 @@ class InferenceActs(actions.BaseActions):
     def __init__(self, tracked_inference):
         self.tracked_inference = tracked_inference
 
-    @actions.rule_action(params={"sms_number": fields.FIELD_TEXT})
-    def send_sms(self, sms_number):
-        print 'beep beep beep', sms_number
-
     @actions.rule_action(params={"seconds": fields.FIELD_NUMERIC})
     def pause_audio(self, seconds):
         connection = pika.BlockingConnection(
@@ -82,7 +78,7 @@ class InferenceActs(actions.BaseActions):
         channel = connection.channel()
         channel.queue_bind(queue='audio_control', exchange='soundscene')
 
-        print 'pausing audio'
+        print ('pausing audio')
         d = dict(command='resume_at',
                  value=time.time() + seconds)  # 100 secs
         channel.basic_publish(exchange='soundscene',
@@ -91,7 +87,7 @@ class InferenceActs(actions.BaseActions):
 
     @actions.rule_action(params={})
     def reset_cnt(self):
-        print 'resetting cnt', self.tracked_inference.cnt
+        print ('resetting cnt', self.tracked_inference.cnt)
         self.tracked_inference.cnt = 0
 
     @actions.rule_action(params={'duration': fields.FIELD_NUMERIC})
@@ -100,12 +96,10 @@ class InferenceActs(actions.BaseActions):
 
     @actions.rule_action(params={'duration': fields.FIELD_NUMERIC})
     def reset_act_window(self, duration):
-        print 'aw', time.time() + duration, time.time()
         self.tracked_inference.act_expire = time.time() + duration
 
     @actions.rule_action(params={})
     def inc_cnt(self):
-        print 'cnt', self.tracked_inference.cnt + 1
         self.tracked_inference.cnt += 1
 
 
@@ -127,8 +121,6 @@ if __name__ == '__main__':
     window_elapased = dict(name='time_to_window',
                            operator='equal_to',
                            value=0)
-    sms_act = dict(name='send_sms',
-                   params=dict(sms_number='13036691412'))
     pause_audio = dict(name='pause_audio',
                        params=dict(seconds=args.pause_duration))
     reset_act_win = dict(name='reset_act_window',
@@ -157,8 +149,6 @@ if __name__ == '__main__':
         }
     ]
 
-    print 'br rules\n', json.dumps(rules)
-
     connection = pika.BlockingConnection(
         pika.ConnectionParameters('localhost'))
     channel = connection.channel()
@@ -174,7 +164,7 @@ if __name__ == '__main__':
             d = json.loads(body)
             idx = np.argwhere(np.asarray(d['idxs']) == 500)
             if idx.shape[0] < 1:
-                print 'no receiving inference for class idx', 500
+                print ('no receiving inference for class idx', 500)
                 sys.exit()
 
             conf = d['inferences'][idx[0, 0]]
@@ -187,7 +177,7 @@ if __name__ == '__main__':
                     stop_on_first_trigger=False)
 
         except Exception as e:
-            print 'exception ', e
+            print ('exception ', e)
 
     channel.basic_consume(queue=result.method.queue,
                           auto_ack=True,
