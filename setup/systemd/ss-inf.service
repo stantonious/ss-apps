@@ -8,7 +8,7 @@ Wants=rabbitmq-server.service
 [Service]
 User=pi
 Type=simple
-ExecStart=/home/pi/start-ss-inf.sh
+ExecStart=inf_app.py
 
 [Install]
 WantedBy=multi-user.target

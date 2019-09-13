@@ -13,7 +13,7 @@ sudo apt-get install -y openmpi-bin libopenmpi-dev libhdf5-dev portaudio19-dev p
 sudo apt-get install -y python-pip python3-virtualenv
 mkdir ~/venvs && cd ~/venvs
 #virtualenv --system-site-packages ss && source ~/venvs/ss/bin/activate
-virtualenv  --system-site-packages -p /usr/bin/python3 ss
+python3 /usr/lib/python3/dist-packages/virtualenv.py  --system-site-packages -p /usr/bin/python3 ss
 
 #
 tmp_folder=/tmp/dumping_ground
