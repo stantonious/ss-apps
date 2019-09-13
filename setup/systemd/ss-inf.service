@@ -8,7 +8,7 @@ Wants=rabbitmq-server.service
 [Service]
 User=pi
 Type=simple
-ExecStart=inf_app.py
+ExecStart=classifier.py
 
 [Install]
 WantedBy=multi-user.target

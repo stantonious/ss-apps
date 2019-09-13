@@ -1,62 +1,50 @@
 #!/bin/sh
-
-#create ss user
-# adduser --ingroup sudo ss
-
 sudo apt-get update
 
 #install system packages
 sudo apt-get install -y openmpi-bin libopenmpi-dev libhdf5-dev portaudio19-dev python-scipy llvm ffmpeg libblas3 liblapack3 liblapack-dev libblas-dev
 
 #install python env
-#sudo apt-get install -y python-pip python-virtualenv
 sudo apt-get install -y python-pip python3-virtualenv
 mkdir ~/venvs && cd ~/venvs
-#virtualenv --system-site-packages ss && source ~/venvs/ss/bin/activate
 python3 /usr/lib/python3/dist-packages/virtualenv.py  --system-site-packages -p /usr/bin/python3 ss
+echo 'source ~/venvs/ss/bin/activate' >> ~/.bashrc
 
-#
 tmp_folder=/tmp/dumping_ground
 mkdir ${tmp_folder}
 pushd ${tmp_folder}
 
 # get setup scripts
-setup_scripts=ss-setup.tgz
-curl --fail -o ${setup_scripts} -s "https://storage.googleapis.com/ss_packages/${setup_scripts}" && tar -xvf ./${setup_scripts}
+git clone https://bitbucket.org/stantonious/ss-apps.git
 # systemd setup
-cp setup/scripts/*.sh ~/
-sudo cp setup/systemd/*.service /lib/systemd/system/
+sudo cp ss-apps/setup/systemd/*.service /lib/systemd/system/
+sudo cp ss-apps/setup/scripts/*.sh /usr/local/bin
 sudo systemctl daemon-reload
 
 #install tensorflow lite
-#https://github.com/PINTO0309/Tensorflow-bin
-#wget -O tensorflow-1.11.0-cp27-cp27mu-linux_armv7l.whl https://github.com/PINTO0309/Tensorflow-bin/raw/master/tensorflow-1.11.0-cp27-cp27mu-linux_armv7l_jemalloc.whl
-#pip install tensorflow-1.11.0-cp27-cp27mu-linux_armv7l.whl
 wget -O tensorflow-1.14.0-cp37-cp37m-linux_armv7l.whl https://github.com/PINTO0309/Tensorflow-bin/raw/master/tensorflow-1.14.0-cp37-cp37m-linux_armv7l.whl
 pip3 install tensorflow-1.14.0-cp37-cp37m-linux_armv7l.whl 
-#python 3.x
-#wget -O tensorflow-1.13.1-cp35-cp35m-linux_armv7l.whl https://github.com/PINTO0309/Tensorflow-bin/raw/master/tensorflow-1.13.1-cp35-cp35m-linux_armv7l.whl
-#pip install tensorflow-1.13.1-cp35-cp35m-linux_armv7l.whl
 
 #pip packages
 #failure to install respampy pip install resampy 
 #pip install pyaudio bokeh flask sqlalchemy pika gunicorn resampy==0.1.2
-pip install pyaudio bokeh flask sqlalchemy pika gunicorn resampy
+pips install pyaudio bokeh flask sqlalchemy pika gunicorn resampy
 
 #pulseaudio
-#sudo apt-get install pulseaudio
-#sudo systemctl --system enable pulseaudio
 sudo apt-get -y upgrade alsa-utils
-sudo usermod -a -G audio ss
+sudo usermod -a -G audio pi
 
 #install seeed 4-mic array
-pushd /tmp
-sudo apt-get update
 sudo apt-get upgrade
 git clone https://github.com/respeaker/seeed-voicecard.git
-cd seeed-voicecard
+pushd seeed-voicecard
 sudo ./install.sh
 popd 
+
+#install rabbitmq
+sudo curl -s https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.deb.sh | sudo bash
+sudo apt-get install -y rabbitmq-server
+sudo systemctl enable rabbitmq-server
 
 #get vggish pca/model
 ss_dir=/opt/soundscape
@@ -74,20 +62,14 @@ sudo curl -XGET -o ${ss_dir}/soundscape.tflite "https://www.googleapis.com/stora
 sudo curl -XGET -o ${ss_dir}/vggish.tflite "https://www.googleapis.com/storage/v1/b/ss-models/o/vggish.tflite?alt=media"
 sudo curl -XGET -o ${audioset_dir}/class_labels_indices.csv "http://storage.googleapis.com/us_audioset/youtube_corpus/v1/csv/class_labels_indices.csv"
 
-#install rabbitmq
-sudo curl -s https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.deb.sh | sudo bash
-sudo apt-get install -y rabbitmq-server
-sudo systemctl enable rabbitmq-server
-
-
+#TODO - Install from clone above
 #install ss
-declare -a pkgs=("ss_infrastructure-1.0.tar.gz" "inf_app-1.0.tar.gz" "rmq_app-1.0.tar.gz" "playback_app-1.0.tar.gz")
+declare -a pkgs=("pi-apps/br" "pi-apps/inf" "pi-web/inf_gui" "pi-svc/audio_playback")
 for i in "${pkgs[@]}"
 do
-    curl -o ${i} -s "https://storage.googleapis.com/ss_packages/${i}" && pip install ${i}
-
+	pip install git+https://git@bitbucket.org/stantonious/ss-apps.git#subdirectory="{i}"
 done
 
+echo 'please reboot!'
 
-#TODO add /lib/systemd/system/ss- start scripts
 
