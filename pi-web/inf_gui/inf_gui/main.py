@@ -64,28 +64,27 @@ def update(ys, time_step, idxs):
 # Test button
 
 
-def click_h(*args, **kwargs):
+def click_h(event):
     connection = pika.BlockingConnection(
         pika.ConnectionParameters('localhost'))
     channel = connection.channel()
     channel.queue_bind(queue='dump_commands', exchange='soundscene')
 
-    print 'dumping audio'
-    d=dict(command='client',
-           size=100) #100 secs
+    d = dict(command='client',
+             size=100)  # 100 secs
     channel.basic_publish(exchange='soundscene',
                           routing_key='dump_commands',
                           body=json.dumps(d))
 
-def click_pause(*args, **kwargs):
+
+def click_pause(event):
     connection = pika.BlockingConnection(
         pika.ConnectionParameters('localhost'))
     channel = connection.channel()
     channel.queue_bind(queue='audio_control', exchange='soundscene')
 
-    print 'dumping audio'
-    d=dict(command='resume_at',
-           value=time.time() + 30) #100 secs
+    d = dict(command='resume_at',
+             value=time.time() + 30)  # 100 secs
     channel.basic_publish(exchange='soundscene',
                           routing_key='audio_control',
                           body=json.dumps(d))
@@ -201,7 +200,7 @@ app_layout = layout([
     [bar_p],
     [line_p],
     [temp_p, cpu_p, ],
-    [button,button_pause],
+    [button, button_pause],
 ], sizing_mode='stretch_both')
 
 doc = curdoc()
@@ -234,7 +233,6 @@ def poll_temp():
         with open('/sys/class/thermal/thermal_zone0/temp', 'r') as f:
             temp = int(f.read()) / 1000.0
             doc.add_next_tick_callback(partial(temp_update, temp))
-
 
 
 def process_inf():
