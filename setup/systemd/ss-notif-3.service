@@ -1,0 +1,13 @@
+[Unit]
+Description=Backoff Service
+Wants=ss-inf.service
+After=ss-inf.service
+
+[Service]
+User=pi
+Type=simple
+ExecStart=start-notification.sh 3 .4
+
+[Install]
+WantedBy=multi-user.target
+
