@@ -55,6 +55,8 @@ def dump_processor(cmd_snd):
     connection = pika.BlockingConnection(
         pika.ConnectionParameters('localhost'))
     channel = connection.channel()
+    channel.exchange_declare(exchange='soundscene'
+                             )
     channel.queue_declare(queue='dump_commands',)
     channel.queue_bind(queue='dump_commands', exchange='soundscene')
 
@@ -146,15 +148,13 @@ def infer(emb_rcv):
                              )
 
     # Load TFLite model and allocate tensors.
-    interpreter = tf.contrib.lite.Interpreter(
+    interpreter = tf.lite.Interpreter(
         model_path="/opt/soundscape/soundscape.tflite")
     interpreter.allocate_tensors()
 
     # Get input and output tensors.
     input_details = interpreter.get_input_details()
     output_details = interpreter.get_output_details()
-
-    #interpreter = tf.contrib.predictor.from_saved_model('/opt/soundscape/ss')
 
     batch_embeddings = []
     batch_times = []
@@ -181,7 +181,7 @@ def infer(emb_rcv):
                 sequential_input = sequential_input.astype(dtype=np.float32)
                 # print 'shape',sequential_input.shape
                 interpreter.set_tensor(
-                    input_details[0]['index'], sequential_input[...,emb_idxs])
+                    input_details[0]['index'], sequential_input[..., emb_idxs])
                 interpreter.invoke()
                 output_data = interpreter.get_tensor(
                     output_details[0]['index'])
@@ -296,7 +296,8 @@ if __name__ == "__main__":
     inf_thread = Thread(target=infer, args=(emb_rcv,))
     #inf_thread = Thread(target=infer_1csvm, args=(emb_rcv,))
     inf_thread.start()
-    aud_ctrl_thread = Thread(target=audio_control_processor, args=(aud_cmd_snd,))
+    aud_ctrl_thread = Thread(
+        target=audio_control_processor, args=(aud_cmd_snd,))
     aud_ctrl_thread.start()
     dmp_thread = Thread(target=dump_processor, args=(cmd_snd,))
     dmp_thread.start()

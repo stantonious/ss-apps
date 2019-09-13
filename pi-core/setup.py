@@ -9,8 +9,8 @@ version = '1.0'
 
 setup(name='ss_core',
       version=version,
-      install_requires=[
-      ],
+      install_requires=['scipy'
+                        ],
       description='''ss infrastructure.
                  ''',
       author='Bryan Staley',

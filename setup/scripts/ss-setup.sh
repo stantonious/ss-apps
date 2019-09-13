@@ -28,7 +28,7 @@ pip3 install tensorflow-1.14.0-cp37-cp37m-linux_armv7l.whl
 #pip packages
 #failure to install respampy pip install resampy 
 #pip install pyaudio bokeh flask sqlalchemy pika gunicorn resampy==0.1.2
-pips install pyaudio bokeh flask sqlalchemy pika gunicorn resampy
+pip install pyaudio bokeh flask sqlalchemy pika gunicorn resampy
 
 #pulseaudio
 sudo apt-get -y upgrade alsa-utils
