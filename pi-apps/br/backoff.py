@@ -23,19 +23,10 @@ parser.add_argument('-c', '--confidence-threshold', type=float, required=True)
 parser.add_argument('-p', '--pause-duration', type=int, required=True)
 
 
-class Inference(object):
-    def __init__(self, idx):
-        self.last_conf = 0
-        self.idx = idx
-        self.cnt = 0
-        self.act_expire = 0
-        self.win_expire = 0
-
-
-class InferenceActs(base.InferenceActs):
+class BackoffActs(base.InferenceActs):
 
     def __init__(self, tracked_inference):
-        self.tracked_inference = tracked_inference
+        super().__init__(tracked_inference)
 
     @actions.rule_action(params={"seconds": fields.FIELD_NUMERIC})
     def pause_audio(self, seconds):
@@ -67,9 +58,7 @@ if __name__ == '__main__':
     act_win = dict(name='time_to_action',
                    operator='equal_to',
                    value=0)
-    window_elapased = dict(name='time_to_window',
-                           operator='equal_to',
-                           value=0)
+
     pause_audio = dict(name='pause_audio',
                        params=dict(seconds=args.pause_duration))
     reset_act_win = dict(name='reset_act_window',
@@ -92,7 +81,7 @@ if __name__ == '__main__':
             'actions':[pause_audio, reset_act_win, reset_cnt]
         },
         {'conditions': {
-            'all': [window_elapased]
+            'all': [window_elapsed]
         },
             'actions':[reset_win, reset_cnt]
         }
@@ -106,7 +95,7 @@ if __name__ == '__main__':
     result = channel.queue_declare(queue='', exclusive=True)
     channel.queue_bind(queue=result.method.queue, exchange='inference')
 
-    inf = Inference(idx=500)
+    inf = base.Inference(idx=500)
 
     def _callback(ch, method, properties, body):
         try:
@@ -121,8 +110,8 @@ if __name__ == '__main__':
             inf.last_conf = conf
 
             run_all(rule_list=rules,
-                    defined_variables=InferenceVars(inf),
-                    defined_actions=InferenceActs(inf),
+                    defined_variables=base.InferenceVars(inf),
+                    defined_actions=BackoffActs(inf),
                     stop_on_first_trigger=False)
 
         except Exception as e:

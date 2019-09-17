@@ -85,3 +85,18 @@ class InferenceActs(actions.BaseActions):
     @actions.rule_action(params={})
     def inc_cnt(self):
         self.tracked_inference.cnt += 1
+
+
+# Default action wiring
+reset_cnt = dict(name='reset_cnt',
+                 params=dict())
+inc_cnt = dict(name='inc_cnt',
+               params=dict())
+
+# Default condition wiring
+act_win = dict(name='time_to_action',
+               operator='equal_to',
+               value=0)
+window_elapsed = dict(name='time_to_window',
+                      operator='equal_to',
+                      value=0)

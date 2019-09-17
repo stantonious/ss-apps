@@ -10,6 +10,7 @@ import json
 import sys
 import os
 import pika
+from app_utils import base
 import numpy as np
 from twilio.rest import Client
 from business_rules import variables, actions, run_all, fields
@@ -27,61 +28,12 @@ account_sid = os.environ.get('TWILIO_SID')
 auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
 client = Client(account_sid, auth_token)
 sms_num = os.environ.get('SMS_NUMBER')
-import csv
-class_mapping = {}
-class_mapping_csv = csv.DictReader(
-    open('/opt/audioset/class_labels_indices.csv'))
-for _n in class_mapping_csv:
-    class_mapping[int(_n['index'])] = _n['display_name']
 
 
-class Inference(object):
-    def __init__(self, idx):
-        self.last_conf = 0
-        self.idx = idx
-        self.cnt = 0
-        self.act_sleep_expire = 0
-        self.win_expire = 0
-
-
-class InferenceVars(variables.BaseVariables):
+class NotificationActs(base.InferenceActs):
 
     def __init__(self, tracked_inference):
-        self.tracked_inference = tracked_inference
-
-    @variables.numeric_rule_variable(label='current confidence')
-    def last_conf(self):
-        return self.tracked_inference.last_conf
-
-    @variables.numeric_rule_variable(label='idx')
-    def idx(self):
-        return self.tracked_inference.idx
-
-    @variables.numeric_rule_variable(label='cnt')
-    def cnt(self):
-        return self.tracked_inference.cnt
-
-    @variables.numeric_rule_variable(label='action expire time')
-    def act_sleep_expire(self):
-        return self.act_sleep_expire
-
-    @variables.numeric_rule_variable(label='window expire time')
-    def win_expire(self):
-        return self.win_expire
-
-    @variables.numeric_rule_variable(label='action expire time')
-    def time_to_action(self):
-        return max([0, self.tracked_inference.act_sleep_expire - time.time()])
-
-    @variables.numeric_rule_variable(label='window expire time')
-    def time_to_window(self):
-        return max([0, self.tracked_inference.win_expire - time.time()])
-
-
-class InferenceActs(actions.BaseActions):
-
-    def __init__(self, tracked_inference):
-        self.tracked_inference = tracked_inference
+        super().__init__(tracked_inference)
 
     actions.rule_action(params={"from_sms_number": fields.FIELD_TEXT,
                                 "to_sms_number": fields.FIELD_TEXT})
@@ -112,22 +64,6 @@ class InferenceActs(actions.BaseActions):
             to=to_sms_number
         )
 
-    @actions.rule_action(params={})
-    def reset_cnt(self):
-        self.tracked_inference.cnt = 0
-
-    @actions.rule_action(params={'duration': fields.FIELD_NUMERIC})
-    def reset_window(self, duration):
-        self.tracked_inference.win_expire = time.time() + duration
-
-    @actions.rule_action(params={'duration': fields.FIELD_NUMERIC})
-    def reset_act_window(self, duration):
-        self.tracked_inference.act_sleep_expire = time.time() + duration
-
-    @actions.rule_action(params={})
-    def inc_cnt(self):
-        self.tracked_inference.cnt += 1
-
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -141,12 +77,7 @@ if __name__ == '__main__':
     inf_thresh = dict(name='last_conf',
                       operator='greater_than',
                       value=args.confidence_threshold)
-    act_win = dict(name='time_to_action',
-                   operator='equal_to',
-                   value=0)
-    window_elapased = dict(name='time_to_window',
-                           operator='equal_to',
-                           value=0)
+
     record_audio = dict(name='record_audio',
                         params=dict(size=20))
 
@@ -157,25 +88,22 @@ if __name__ == '__main__':
                          params=dict(duration=args.sleep_action_duration))
     reset_win = dict(name='reset_window',
                      params=dict(duration=args.event_window))
-    reset_cnt = dict(name='reset_cnt',
-                     params=dict())
-    inc_cnt = dict(name='inc_cnt',
-                   params=dict())
+
     rules = [
         {'conditions': {
             'all': [inf_thresh]
         },
-            'actions':[inc_cnt]
+            'actions':[base.inc_cnt]
         },
         {'conditions': {
-            'all': [tracked_idx, cnt_exceeded, act_win]
+            'all': [tracked_idx, cnt_exceeded, base.act_win]
         },
-            'actions':[record_audio, sms_act, reset_act_win, reset_cnt]
+            'actions':[record_audio, sms_act, reset_act_win, base.reset_cnt]
         },
         {'conditions': {
-            'all': [window_elapased]
+            'all': [base.window_elapsed]
         },
-            'actions':[reset_win, reset_cnt]
+            'actions':[reset_win, base.reset_cnt]
         }
     ]
 
@@ -202,8 +130,8 @@ if __name__ == '__main__':
             inf.last_conf = conf
 
             run_all(rule_list=rules,
-                    defined_variables=InferenceVars(inf),
-                    defined_actions=InferenceActs(inf),
+                    defined_variables=base.InferenceVars(inf),
+                    defined_actions=NotificationActs(inf),
                     stop_on_first_trigger=False)
 
         except Exception as e:
