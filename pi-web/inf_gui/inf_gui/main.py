@@ -19,10 +19,7 @@ _CLASS_MAPPING = {}
 class_mapping_csv = csv.DictReader(
     open('/opt/audioset/class_labels_indices.csv'))
 class_names = []
-# baby
 
-# test
-# class_idxs=[1,2,3,74,111,137,288,307,327,335,384,500]
 for _n in class_mapping_csv:
     _CLASS_MAPPING[int(_n['index'])] = _n['display_name']
 
@@ -60,8 +57,6 @@ def update(ys, time_step, idxs):
             dict(pos=[i], y=[ys[i]]), rollover=1)
         duration_ds[idx].stream(
             dict(time=[datetime.datetime.fromtimestamp(time_step)], y=[y]), rollover=20 * 60)  # 20 mios
-
-# Test button
 
 
 def click_h(event):
