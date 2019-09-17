@@ -46,6 +46,23 @@ class NotificationActs(base.InferenceActs):
 
     @actions.rule_action(params={'api_key': fields.FIELD_TEXT,
                                  'class_idx': fields.FIELD_NUMERIC})
+    def ss_record(self,
+                  api_key,
+                  class_idx):
+        import requests
+
+        url = 'http://trainer.soundscene.org:8081/soundscene/v.1.0/classification/record'
+        params = dict(api_key=api_key,
+                      classification_id=class_idx)
+        print ('sending sms')
+
+        r = requests.get(url=url,
+                         params=params)
+
+        print ('ss response', r.json())
+
+    @actions.rule_action(params={'api_key': fields.FIELD_TEXT,
+                                 'class_idx': fields.FIELD_NUMERIC})
     def ss_notify(self,
                   api_key,
                   class_idx):
@@ -53,7 +70,7 @@ class NotificationActs(base.InferenceActs):
 
         url = 'http://trainer.soundscene.org:8081/soundscene/v.1.0/notification/sms'
         params = dict(api_key=api_key,
-                      classification_id=class_idx)
+                      class_idx=class_idx)
         print ('sending sms')
 
         r = requests.get(url=url,
