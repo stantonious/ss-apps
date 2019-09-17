@@ -21,5 +21,5 @@ setup(name='ss_br_apps',
       scripts=['audio_recorder.py',
                'backoff.py',
                'notification.py'],
-      packages=[]
+      packages=['app_utils']
       )

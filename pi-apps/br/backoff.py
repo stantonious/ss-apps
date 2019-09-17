@@ -10,7 +10,7 @@ import json
 import sys
 import pika
 import numpy as np
-from . import base
+from app_utils import base
 from business_rules import variables, actions, run_all, fields
 
 parser = argparse.ArgumentParser(
