@@ -10,6 +10,7 @@ import json
 import sys
 import pika
 import numpy as np
+from . import base
 from business_rules import variables, actions, run_all, fields
 
 parser = argparse.ArgumentParser(
@@ -31,42 +32,7 @@ class Inference(object):
         self.win_expire = 0
 
 
-class InferenceVars(variables.BaseVariables):
-
-    def __init__(self, tracked_inference):
-        self.tracked_inference = tracked_inference
-
-    @variables.numeric_rule_variable(label='current confidence')
-    def last_conf(self):
-        return self.tracked_inference.last_conf
-
-    @variables.numeric_rule_variable(label='idx')
-    def idx(self):
-        return self.tracked_inference.idx
-
-    @variables.numeric_rule_variable(label='cnt')
-    def cnt(self):
-        return self.tracked_inference.cnt
-
-    @variables.numeric_rule_variable(label='action expire time')
-    def act_expire(self):
-
-        return self.act_expire
-
-    @variables.numeric_rule_variable(label='window expire time')
-    def win_expire(self):
-        return self.win_expire
-
-    @variables.numeric_rule_variable(label='action expire time')
-    def time_to_action(self):
-        return max([0, self.tracked_inference.act_expire - time.time()])
-
-    @variables.numeric_rule_variable(label='window expire time')
-    def time_to_window(self):
-        return max([0, self.tracked_inference.win_expire - time.time()])
-
-
-class InferenceActs(actions.BaseActions):
+class InferenceActs(base.InferenceActs):
 
     def __init__(self, tracked_inference):
         self.tracked_inference = tracked_inference
@@ -84,23 +50,6 @@ class InferenceActs(actions.BaseActions):
         channel.basic_publish(exchange='soundscene',
                               routing_key='audio_control',
                               body=json.dumps(d))
-
-    @actions.rule_action(params={})
-    def reset_cnt(self):
-        print ('resetting cnt', self.tracked_inference.cnt)
-        self.tracked_inference.cnt = 0
-
-    @actions.rule_action(params={'duration': fields.FIELD_NUMERIC})
-    def reset_window(self, duration):
-        self.tracked_inference.win_expire = time.time() + duration
-
-    @actions.rule_action(params={'duration': fields.FIELD_NUMERIC})
-    def reset_act_window(self, duration):
-        self.tracked_inference.act_expire = time.time() + duration
-
-    @actions.rule_action(params={})
-    def inc_cnt(self):
-        self.tracked_inference.cnt += 1
 
 
 if __name__ == '__main__':
