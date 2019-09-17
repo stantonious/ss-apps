@@ -194,7 +194,8 @@ def infer(emb_rcv):
                                       routing_key='',
                                       body=json.dumps(dict(time=batch_times[seq_len - 1],
                                                            inferences=inferences,
-                                                           embeddings=sequential_input.tolist(),
+                                                           embeddings=np.asarray(
+                                                               batch_embeddings[:seq_len], dtype=np.uint8).tolist(),
                                                            idxs=class_idxs.tolist())))
                 # idxs=output_data['idxs'].tolist())))#class_idxs.tolist())))
                 batch_embeddings = batch_embeddings[shift_window:]

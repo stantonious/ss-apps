@@ -47,13 +47,13 @@ class NotificationActs(base.InferenceActs):
         params = dict(api_key=api_key,
                       class_idx=self.tracked_inference.idx,
                       class_conf=self.tracked_inference.last_conf,
-                      embeddings=base64.encode(
+                      embeddings=base64.b64encode(
                           self.tracked_inference.embeddings)
                       )
         print ('recording sms')
 
-        r = requests.get(url=url,
-                         params=params)
+        r = requests.post(url=url,
+                          json=params)
 
         print ('ss response', r.json())
 
@@ -117,7 +117,7 @@ if __name__ == '__main__':
             conf = d['inferences'][idx[0, 0]]
 
             inf.last_conf = conf
-            inf.embeddings = np.asarray(d['embeddings'])
+            inf.embeddings = np.asarray(d['embeddings'], dtype=np.uint8)
 
             run_all(rule_list=rules,
                     defined_variables=base.InferenceVars(inf),
