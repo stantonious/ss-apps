@@ -55,35 +55,27 @@ if __name__ == '__main__':
     inf_thresh = dict(name='last_conf',
                       operator='greater_than',
                       value=args.confidence_threshold)
-    act_win = dict(name='time_to_action',
-                   operator='equal_to',
-                   value=0)
-
     pause_audio = dict(name='pause_audio',
                        params=dict(seconds=args.pause_duration))
     reset_act_win = dict(name='reset_act_window',
                          params=dict(duration=args.notification_window))
     reset_win = dict(name='reset_window',
                      params=dict(duration=args.event_window))
-    reset_cnt = dict(name='reset_cnt',
-                     params=dict())
-    inc_cnt = dict(name='inc_cnt',
-                   params=dict())
     rules = [
         {'conditions': {
             'all': [inf_thresh]
         },
-            'actions':[inc_cnt]
+            'actions':[base.inc_cnt]
         },
         {'conditions': {
-            'all': [silence_idx, cnt_exceeded, act_win]
+            'all': [silence_idx, cnt_exceeded, base.act_win]
         },
-            'actions':[pause_audio, reset_act_win, reset_cnt]
+            'actions':[pause_audio, reset_act_win, base.reset_cnt]
         },
         {'conditions': {
-            'all': [window_elapsed]
+            'all': [base.window_elapsed]
         },
-            'actions':[reset_win, reset_cnt]
+            'actions':[reset_win, base.reset_cnt]
         }
     ]
 
