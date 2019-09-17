@@ -12,7 +12,6 @@ import os
 import pika
 from app_utils import base
 import numpy as np
-from twilio.rest import Client
 from business_rules import variables, actions, run_all, fields
 
 parser = argparse.ArgumentParser(
@@ -24,19 +23,13 @@ parser.add_argument('-t', '--event-num-threshold', type=int, required=True)
 parser.add_argument('-c', '--confidence-threshold', type=float, required=True)
 parser.add_argument('-i', '--index', type=int, required=True)
 
-account_sid = os.environ.get('TWILIO_SID')
-auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
-client = Client(account_sid, auth_token)
-sms_num = os.environ.get('SMS_NUMBER')
+api_key = os.environ.get('SS_API_KEY')
 
 
 class NotificationActs(base.InferenceActs):
 
     def __init__(self, tracked_inference):
         super().__init__(tracked_inference)
-
-    actions.rule_action(params={"from_sms_number": fields.FIELD_TEXT,
-                                "to_sms_number": fields.FIELD_TEXT})
 
     @actions.rule_action(params={'size': fields.FIELD_NUMERIC})
     def record_audio(self, size):
@@ -51,18 +44,22 @@ class NotificationActs(base.InferenceActs):
                               routing_key='dump_commands',
                               body=json.dumps(d))
 
-    def send_sms(self,
-                 from_sms_number,
-                 to_sms_number):
+    @actions.rule_action(params={'api_key': fields.FIELD_TEXT,
+                                 'class_idx': fields.FIELD_NUMERIC})
+    def ss_notify(self,
+                  api_key,
+                  class_idx):
+        import requests
+
+        url = 'http://trainer.soundscene.org:8081'
+        params = dict(api_key=api_key,
+                      classification_id=class_idx)
         print ('sending sms')
 
-        message = client.messages.create(
-            body='Received {} - {} times.\n{}'.format(class_mapping[self.tracked_inference.idx],
-                                                      self.tracked_inference.cnt,
-                                                      'http://home.soundscene.org:5009/test'),
-            from_=from_sms_number,
-            to=to_sms_number
-        )
+        r = requests.get(url=url,
+                         params=params)
+
+        print ('ss response', r.json())
 
 
 if __name__ == '__main__':
@@ -81,9 +78,9 @@ if __name__ == '__main__':
     record_audio = dict(name='record_audio',
                         params=dict(size=20))
 
-    sms_act = dict(name='send_sms',
-                   params=dict(from_sms_number='+12057076255',
-                               to_sms_number=sms_num))
+    notifify = dict(name='ss_notify',
+                    params=dict(api_key=api_key,
+                                class_idx=args.index))
     reset_act_win = dict(name='reset_act_window',
                          params=dict(duration=args.sleep_action_duration))
     reset_win = dict(name='reset_window',
@@ -115,7 +112,7 @@ if __name__ == '__main__':
     result = channel.queue_declare(queue='', exclusive=True)
     channel.queue_bind(queue=result.method.queue, exchange='inference')
 
-    inf = Inference(idx=args.index)
+    inf = base.Inference(idx=args.index)
 
     def _callback(ch, method, properties, body):
         try:

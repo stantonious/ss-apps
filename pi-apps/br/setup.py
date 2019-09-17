@@ -12,7 +12,8 @@ setup(name='ss_br_apps',
       install_requires=[
           'business_rules',
           'numpy',
-          'pika'
+          'pika',
+          'requests'
       ],
       description='''br apps.
                  ''',
