@@ -51,7 +51,7 @@ class NotificationActs(base.InferenceActs):
                   class_idx):
         import requests
 
-        url = 'http://trainer.soundscene.org:8081'
+        url = 'http://trainer.soundscene.org:8081/soundscene/v.1.0/notification/sms'
         params = dict(api_key=api_key,
                       classification_id=class_idx)
         print ('sending sms')
@@ -78,9 +78,9 @@ if __name__ == '__main__':
     record_audio = dict(name='record_audio',
                         params=dict(size=20))
 
-    notifify = dict(name='ss_notify',
-                    params=dict(api_key=api_key,
-                                class_idx=args.index))
+    notify = dict(name='ss_notify',
+                  params=dict(api_key=api_key,
+                              class_idx=args.index))
     reset_act_win = dict(name='reset_act_window',
                          params=dict(duration=args.sleep_action_duration))
     reset_win = dict(name='reset_window',
@@ -95,7 +95,7 @@ if __name__ == '__main__':
         {'conditions': {
             'all': [tracked_idx, cnt_exceeded, base.act_win]
         },
-            'actions':[record_audio, sms_act, reset_act_win, base.reset_cnt]
+            'actions':[record_audio, notify, reset_act_win, base.reset_cnt]
         },
         {'conditions': {
             'all': [base.window_elapsed]
