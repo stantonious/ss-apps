@@ -43,7 +43,7 @@ class NotificationActs(base.InferenceActs):
         import requests
         import base64
 
-        url = 'http://trainer.soundscene.org:8081/soundscene/v.1.0/classification/record'
+        url = f'{base.ss_service_base_uri}soundscene/v.1.0/classification/record'
         params = dict(api_key=api_key,
                       class_idx=self.tracked_inference.idx,
                       class_conf=self.tracked_inference.last_conf,

@@ -51,7 +51,7 @@ class NotificationActs(base.InferenceActs):
                   class_idx):
         import requests
 
-        url = 'http://trainer.soundscene.org:8081/soundscene/v.1.0/classification/record'
+        url = f'{base.ss_service_base_uri}soundscene/v.1.0/classification/record'
         params = dict(api_key=api_key,
                       classification_id=class_idx)
         print ('sending sms')
@@ -68,7 +68,7 @@ class NotificationActs(base.InferenceActs):
                   class_idx):
         import requests
 
-        url = 'http://trainer.soundscene.org:8081/soundscene/v.1.0/notification/sms'
+        url = f'{base.ss_service_base_uri}soundscene/v.1.0/notification/sms'
         params = dict(api_key=api_key,
                       class_idx=class_idx)
         print ('sending sms')
