@@ -39,7 +39,7 @@ def archive_audio(rec_rcv,
                     dir=archive_dir, rate=rate, duration=duration, channels=channels)
                 data[frames_per_file -
                      frames_written:, ...].tofile(open_archive)
-                frames_written += frames_per_file - frames_written
+                frames_written = frames_per_file - frames_written
             else:
                 data.tofile(open_archive)
                 frames_written += data.shape[0]
