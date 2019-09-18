@@ -11,6 +11,7 @@ import sys
 import os
 import pika
 import numpy as np
+import datetime
 from business_rules import variables, actions, run_all, fields
 
 ss_service_base_uri = 'https://mcm-dev-187021.appspot.com/'
@@ -137,9 +138,10 @@ class InferenceActs(actions.BaseActions):
         for _f in glob.glob(f'{arch_dir}/*.raw'):
             fname = os.path.basename(_f)
             m = re.match(
-                r'(?P<timestamp>[^-]+)-(?P<duration>[^-]+).*', fname)
+                r'(?P<timestamp>[^-]+)-(?P<duration>[^-]+)-(?P<rate>[^-]+)-(?P<channels>[^-]+).*', fname)
             ts = float(m.group('timestamp'))
             dur = int(m.group('duration'))
+            channels = m.group('channels')
             f_start_dt = datetime.datetime.fromtimestamp(ts)
             f_end_dt = f_start_dt + datetime.timedelta(seconds=dur)
 

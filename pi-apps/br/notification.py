@@ -141,6 +141,8 @@ if __name__ == '__main__':
             conf = d['inferences'][idx[0, 0]]
 
             inf.last_conf = conf
+            inf.embeddings = np.asarray(d['embeddings'], dtype=np.uint8)
+            inf.time = d['time']
 
             run_all(rule_list=rules,
                     defined_variables=base.InferenceVars(inf),
