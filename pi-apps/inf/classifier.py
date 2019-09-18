@@ -224,12 +224,12 @@ def monitor_processes():
                                                    CHANNELS))
     aud_p.start()
     rec_p = multiprocessing.Process(
-        target=audio_archive_processor.record_audio, args=(rec_rcv,
-                                                           RATE,
-                                                           CHANNELS,
-                                                           20,
-                                                           '/archive'
-                                                           ))
+        target=audio_archive_processor.archive_audio, args=(rec_rcv,
+                                                            RATE,
+                                                            CHANNELS,
+                                                            20,
+                                                            '/archive'
+                                                            ))
 
     rec_p.start()
     frm_p = multiprocessing.Process(
@@ -278,12 +278,12 @@ def monitor_processes():
         elif not rec_p.is_alive():
             print ("RECORDING PROCESS DIED...Restarting")
             rec_p = multiprocessing.Process(
-                target=audio_archive_processor.record_audio, args=(rec_rcv,
-                                                                   RATE,
-                                                                   CHANNELS,
-                                                                   20,
-                                                                   '/archive'
-                                                                   ))
+                target=audio_archive_processor.archive_audio, args=(rec_rcv,
+                                                                    RATE,
+                                                                    CHANNELS,
+                                                                    20,
+                                                                    '/archive'
+                                                                    ))
             rec_p.start()
         else:
             time.sleep(.2)
