@@ -1,4 +1,4 @@
-#!/home/pi/venvs/ss/bin/python2
+#!/usr/bin/python
 import numpy as np
 import sys
 import tensorflow as tf
@@ -8,7 +8,7 @@ import json
 import time
 from threading import Thread
 import pika
-from inference import record_processor, embedding_processor, audio_processor, framing_processor
+from inference import audio_archive_processor, embedding_processor, audio_processor, framing_processor
 
 
 RATE = 16000
@@ -225,14 +225,12 @@ def monitor_processes():
                                                    CHANNELS))
     aud_p.start()
     rec_p = multiprocessing.Process(
-        target=record_processor.record_audio, args=(rec_rcv,
-                                                    cmd_rcv,
-                                                    emb_rec_rcv,
-                                                    RATE,
-                                                    CHANNELS,
-                                                    20,
-                                                    '/archive'
-                                                    ))
+        target=audio_archive_processor.record_audio, args=(rec_rcv,
+                                                           RATE,
+                                                           CHANNELS,
+                                                           20,
+                                                           '/archive'
+                                                           ))
 
     rec_p.start()
     frm_p = multiprocessing.Process(
@@ -281,14 +279,12 @@ def monitor_processes():
         elif not rec_p.is_alive():
             print ("RECORDING PROCESS DIED...Restarting")
             rec_p = multiprocessing.Process(
-                target=record_processor.record_audio, args=(rec_rcv,
-                                                            cmd_rcv,
-                                                            emb_rec_rcv,
-                                                            RATE,
-                                                            CHANNELS,
-                                                            20,
-                                                            '/archive'
-                                                            ))
+                target=audio_archive_processor.record_audio, args=(rec_rcv,
+                                                                   RATE,
+                                                                   CHANNELS,
+                                                                   20,
+                                                                   '/archive'
+                                                                   ))
             rec_p.start()
         else:
             time.sleep(.2)
