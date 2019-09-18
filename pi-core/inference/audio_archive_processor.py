@@ -22,12 +22,16 @@ def archive_audio(rec_rcv,
         fname = f'{time.time()}-{duration}-{rate}-{channels}.raw'
         now = datetime.datetime.utcnow()
         now_tt = now.timetuple()
-        return open(os.path.join(dir, now_tt.tm_year, now_tt.tm_yday, fname), 'wb')
+        arc_dir = os.path.join(dir, str(now_tt.tm_year), str(now_tt.tm_yday))
+        if not os.path.exists(arc_dir):
+            os.makedirs(name=arc_dir)
+
+        return open(os.path.join(arc_dir, fname), 'wb')
 
     frames_written = 0
     frames_per_file = duration * rate
     open_archive = _get_audio_archive_f(
-        dir=archive_dir, rate=rate, duration=duration, channels=channels)
+        dir=archive_root, rate=rate, duration=duration, channels=channels)
 
     while True:
         if rec_rcv.poll():
@@ -38,7 +42,7 @@ def archive_audio(rec_rcv,
                      frames_written, ...].tofile(open_archive)
                 open_archive.close()
                 open_archive = _get_audio_archive_f(
-                    dir=archive_dir, rate=rate, duration=duration, channels=channels)
+                    dir=archive_root, rate=rate, duration=duration, channels=channels)
                 data[frames_per_file -
                      frames_written:, ...].tofile(open_archive)
                 frames_written = frames_per_file - frames_written
