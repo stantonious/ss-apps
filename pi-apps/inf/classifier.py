@@ -25,7 +25,6 @@ rec_rcv, rec_snd = multiprocessing.Pipe(False)
 frm_rcv, frm_snd = multiprocessing.Pipe(False)
 cmd_rcv, cmd_snd = multiprocessing.Pipe(False)
 emb_rcv, emb_snd = multiprocessing.Pipe(False)
-emb_rec_rcv, emb_rec_snd = multiprocessing.Pipe(False)
 aud_cmd_rcv, aud_cmd_snd = multiprocessing.Pipe(False)
 
 shift_window = 1
@@ -212,7 +211,7 @@ def monitor_processes():
         target=embedding_processor.generate_embeddings, args=(frm_rcv,
                                                               emb_snd,
                                                               mon_snd,
-                                                              emb_rec_snd,
+                                                              None,
                                                               aud_cmd_rcv,
                                                               RATE))
     emb_p.start()
@@ -252,7 +251,7 @@ def monitor_processes():
                 target=embedding_processor.generate_embeddings, args=(frm_rcv,
                                                                       emb_snd,
                                                                       mon_snd,
-                                                                      emb_rec_snd,
+                                                                      None,
                                                                       aud_cmd_rcv,
                                                                       RATE))
             emb_p.start()
