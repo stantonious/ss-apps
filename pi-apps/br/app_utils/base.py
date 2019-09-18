@@ -11,7 +11,6 @@ import sys
 import os
 import pika
 import numpy as np
-from twilio.rest import Client
 from business_rules import variables, actions, run_all, fields
 
 ss_service_base_uri = 'https://mcm-dev-187021.appspot.com/'

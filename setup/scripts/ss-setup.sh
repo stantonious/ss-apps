@@ -2,10 +2,12 @@
 sudo apt-get update
 
 #install system packages
-sudo apt-get install -y openmpi-bin libopenmpi-dev libhdf5-dev portaudio19-dev python-scipy llvm ffmpeg libblas3 liblapack3 liblapack-dev libblas-dev
+sudo apt-get install -y openmpi-bin libopenmpi-dev libhdf5-dev portaudio19-dev python-scipy llvm ffmpeg libblas3 liblapack3 liblapack-dev libblas-dev libatlas-base-dev
 
+#install useful utils
+sudo apt-get install -y vim bc git
 #install python env
-sudo apt-get install -y python-pip python3-virtualenv
+sudo apt-get install -y python-pip python3-virtualenv python3-dev
 mkdir ~/venvs && cd ~/venvs
 python3 /usr/lib/python3/dist-packages/virtualenv.py  --system-site-packages -p /usr/bin/python3 ss
 echo 'source ~/venvs/ss/bin/activate' >> ~/.bashrc
@@ -25,14 +27,14 @@ sudo systemctl enable ss-inf
 #sudo systemctl enable ss-gui
 #sudo systemctl enable ss-audioplayback
 
-#install tensorflow lite
-wget -O tensorflow-1.14.0-cp37-cp37m-linux_armv7l.whl https://github.com/PINTO0309/Tensorflow-bin/raw/master/tensorflow-1.14.0-cp37-cp37m-linux_armv7l.whl
-pip3 install tensorflow-1.14.0-cp37-cp37m-linux_armv7l.whl 
-
 #pip packages
 #failure to install respampy pip install resampy 
 #pip install pyaudio bokeh flask sqlalchemy pika gunicorn resampy==0.1.2
 pip install pyaudio bokeh flask sqlalchemy pika gunicorn resampy
+
+#install tensorflow lite
+wget -O tensorflow-1.14.0-cp37-cp37m-linux_armv7l.whl https://github.com/PINTO0309/Tensorflow-bin/raw/master/tensorflow-1.14.0-cp37-cp37m-linux_armv7l.whl
+pip3 install tensorflow-1.14.0-cp37-cp37m-linux_armv7l.whl 
 
 #pulseaudio
 sudo apt-get install -y --only-upgrade alsa-utils
@@ -72,6 +74,10 @@ for i in "${pkgs[@]}"
 do
 	pip install git+https://git@bitbucket.org/stantonious/ss-apps.git#subdirectory="${i}"
 done
+
+#clean up
+popd
+rm -rf ${tmp_folder}
 
 echo 'please reboot!'
 
