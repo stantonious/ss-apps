@@ -7,7 +7,7 @@ import os
 import numpy as np
 import time
 from collections import deque
-import gzip
+import datetime
 from . import logger
 
 
@@ -15,12 +15,14 @@ def archive_audio(rec_rcv,
                   rate,
                   channels=2,
                   duration=5,  # seconds
-                  archive_dir='/tmp'
+                  archive_root='/tmp'
                   ):
 
     def _get_audio_archive_f(dir, rate, duration, channels):
         fname = f'{time.time()}-{duration}-{rate}-{channels}.raw'
-        return gzip.open(os.path.join(dir, fname), 'wb')
+        now = datetime.datetime.utcnow()
+        now_tt = now.timetuple()
+        return open(os.path.join(dir, now_tt.tm_year, now_tt.tm_yday, fname), 'wb')
 
     frames_written = 0
     frames_per_file = duration * rate
