@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/home/pi/venvs/ss/bin/python3
 '''
 Created on Aug 28, 2019
 
@@ -45,6 +45,13 @@ class NotificationActs(base.InferenceActs):
         import requests
         import base64
 
+        def _get_embedding_file(embeddings):
+            import io
+            emb_f = io.BytesIO()
+            np.save(emb_f, embeddings)
+            emb_f.seek(0)
+            return emb_f
+
         def _get_compressed_archive(t):
             import re
             import glob
@@ -52,7 +59,7 @@ class NotificationActs(base.InferenceActs):
             import gzip
             arch_dt = datetime.datetime.fromtimestamp(t)
             arch_dir = os.path.join(
-                '/archive', arch_dt.year, dt.timetuple().tm_yday)
+                '/archive', str(arch_dt.year), str(arch_dt.timetuple().tm_yday))
 
             for _f in glob.glob(f'{arch_dir}/*.raw'):
                 fname = os.path.basename(_f)
@@ -77,10 +84,11 @@ class NotificationActs(base.InferenceActs):
         params = dict(api_key=api_key,
                       class_idx=self.tracked_inference.idx,
                       class_conf=self.tracked_inference.last_conf,
-                      embeddings=base64.b64encode(
-                          self.tracked_inference.embeddings)
                       )
         files = dict()
+        files['embeddings'] = _get_embedding_file(
+            self.tracked_inference.embeddings)
+        files['params'] = json.dumps(params)
         aud_arch = _get_compressed_archive(self.tracked_inference.time)
 
         if aud_arch:
@@ -89,10 +97,9 @@ class NotificationActs(base.InferenceActs):
         print ('recording sms')
 
         r = requests.post(url=url,
-                          json=params,
                           files=files)
 
-        print ('ss response', r.json())
+        print ('ss response', r, vars(r))
 
 
 if __name__ == '__main__':
