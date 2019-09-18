@@ -131,6 +131,7 @@ class InferenceActs(actions.BaseActions):
         import glob
         import io
         import gzip
+        from subprocess import Popen, PIPE
         arch_dt = datetime.datetime.fromtimestamp(t)
         arch_dir = os.path.join(
             '/archive', str(arch_dt.year), str(arch_dt.timetuple().tm_yday))
@@ -138,7 +139,7 @@ class InferenceActs(actions.BaseActions):
         for _f in glob.glob(f'{arch_dir}/*.raw'):
             fname = os.path.basename(_f)
             m = re.match(
-                r'(?P<timestamp>[^-]+)-(?P<duration>[^-]+)-(?P<rate>[^-]+)-(?P<channels>[^-]+).*', fname)
+                r'(?P<timestamp>[^-]+)-(?P<duration>[^-]+)-(?P<rate>[^-]+)-(?P<channels>\d+).*', fname)
             ts = float(m.group('timestamp'))
             dur = int(m.group('duration'))
             channels = m.group('channels')
@@ -152,7 +153,7 @@ class InferenceActs(actions.BaseActions):
                     wav_f = io.BytesIO()
 
                     popen_args = ['ffmpeg', '-f', 's16le', '-ac', str(channels), '-ar',
-                                  str(rate), '-i', url_name, '-f', 'mp3', 'pipe:1']
+                                  str(rate), '-i', _f, '-f', 'mp3', 'pipe:1']
 
                     proc = Popen(popen_args, stdout=PIPE)
 

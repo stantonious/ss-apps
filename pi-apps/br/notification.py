@@ -69,7 +69,7 @@ class NotificationActs(base.InferenceActs):
 
         url = f'{base.ss_service_base_uri}soundscene/v.1.0/notification/sms'
         params = dict(api_key=api_key,
-                      class_idx=self.tracked_inference.record_id)
+                      class_id=self.tracked_inference.record_id)
         print ('sending sms')
 
         r = requests.get(url=url,
