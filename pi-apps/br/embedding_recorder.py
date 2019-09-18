@@ -7,6 +7,7 @@ Created on Aug 28, 2019
 import argparse
 import time
 import json
+import datetime
 import sys
 import os
 import pika
@@ -30,6 +31,7 @@ class EmbeddingInf(base.Inference):
     def __init__(self, idx):
         super().__init__(idx)
         self.embeddings = None
+        self.time = None
 
 
 class NotificationActs(base.InferenceActs):
@@ -43,6 +45,34 @@ class NotificationActs(base.InferenceActs):
         import requests
         import base64
 
+        def _get_compressed_archive(t):
+            import re
+            import glob
+            import io
+            import gzip
+            arch_dt = datetime.datetime.fromtimestamp(t)
+            arch_dir = os.path.join(
+                '/archive', arch_dt.year, dt.timetuple().tm_yday)
+
+            for _f in glob.glob(f'{arch_dir}/*.raw'):
+                fname = os.path.basename(_f)
+                m = re.match(
+                    r'(?P<timestamp>[^-]+)-(?P<duration>[^-]+).*', fname)
+                ts = float(m.group('timestamp'))
+                dur = int(m.group('duration'))
+                f_start_dt = datetime.datetime.fromtimestamp(ts)
+                f_end_dt = f_start_dt + datetime.timedelta(seconds=dur)
+
+                if arch_dt >= f_start_dt and arch_dt < f_end_dt:
+                    with open(_f, 'rb') as arch_f:
+                        # found the archive
+                        gzip_f = io.BytesIO()
+                        with gzip.open(gzip_f, 'wb') as to_file:
+                            to_file.write(arch_f.read())
+                        gzip_f.seek(0)
+                        return gzip_f
+            return None
+
         url = f'{base.ss_service_base_uri}soundscene/v.1.0/classification/record'
         params = dict(api_key=api_key,
                       class_idx=self.tracked_inference.idx,
@@ -50,10 +80,17 @@ class NotificationActs(base.InferenceActs):
                       embeddings=base64.b64encode(
                           self.tracked_inference.embeddings)
                       )
+        files = dict()
+        aud_arch = _get_compressed_archive(self.tracked_inference.time)
+
+        if aud_arch:
+            files['audio_archive'] = aud_arch
+
         print ('recording sms')
 
         r = requests.post(url=url,
-                          json=params)
+                          json=params,
+                          files=files)
 
         print ('ss response', r.json())
 
@@ -118,6 +155,7 @@ if __name__ == '__main__':
 
             inf.last_conf = conf
             inf.embeddings = np.asarray(d['embeddings'], dtype=np.uint8)
+            inf.time = d['time']
 
             run_all(rule_list=rules,
                     defined_variables=base.InferenceVars(inf),

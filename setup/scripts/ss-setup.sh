@@ -75,6 +75,10 @@ do
 	pip install git+https://git@bitbucket.org/stantonious/ss-apps.git#subdirectory="${i}"
 done
 
+# make ss env
+sudo mkdir /archive && sudo chown pi:pi /archive
+(crontab -l 2>/dev/null; echo "0 0 * * * find /archive -type f -mtime +2 -delete") | crontab -
+
 #clean up
 popd
 rm -rf ${tmp_folder}
