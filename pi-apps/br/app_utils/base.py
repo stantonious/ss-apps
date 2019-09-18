@@ -142,6 +142,7 @@ class InferenceActs(actions.BaseActions):
             ts = float(m.group('timestamp'))
             dur = int(m.group('duration'))
             channels = m.group('channels')
+            rate = m.group('rate')
             f_start_dt = datetime.datetime.fromtimestamp(ts)
             f_end_dt = f_start_dt + datetime.timedelta(seconds=dur)
 
