@@ -31,38 +31,37 @@ class NotificationActs(base.InferenceActs):
     def __init__(self, tracked_inference):
         super().__init__(tracked_inference)
 
-    @actions.rule_action(params={'size': fields.FIELD_NUMERIC})
-    def record_audio(self, size):
-        connection = pika.BlockingConnection(
-            pika.ConnectionParameters('localhost'))
-        channel = connection.channel()
-        channel.queue_bind(queue='dump_commands', exchange='soundscene')
-
-        d = dict(command='client',
-                 size=size)
-        channel.basic_publish(exchange='soundscene',
-                              routing_key='dump_commands',
-                              body=json.dumps(d))
-
-    @actions.rule_action(params={'api_key': fields.FIELD_TEXT,
-                                 'class_idx': fields.FIELD_NUMERIC})
+    @actions.rule_action(params={'api_key': fields.FIELD_TEXT, })
     def ss_record(self,
-                  api_key,
-                  class_idx):
+                  api_key):
         import requests
+        import base64
 
         url = f'{base.ss_service_base_uri}soundscene/v.1.0/classification/record'
         params = dict(api_key=api_key,
-                      classification_id=class_idx)
-        print ('sending sms')
+                      class_idx=self.tracked_inference.idx,
+                      class_conf=self.tracked_inference.last_conf,
+                      )
+        files = dict()
+        files['embeddings'] = self._get_embedding_file(
+            self.tracked_inference.embeddings)
+        files['params'] = json.dumps(params)
+        aud_arch = self._get_wav(self.tracked_inference.time)
 
-        r = requests.get(url=url,
-                         params=params)
+        if aud_arch:
+            files['audio_archive'] = aud_arch
 
-        print ('ss response', r.json())
+        print ('recording sms')
 
-    @actions.rule_action(params={'api_key': fields.FIELD_TEXT,
-                                 'class_idx': fields.FIELD_NUMERIC})
+        r = requests.post(url=url,
+                          files=files)
+
+        if r.status_code == 200:
+            self.tracked_inference.record_id = r.json()['class_id']
+        else:
+            print ('ss response', r, vars(r))
+            self.tracked_inference.record_id = None
+
     def ss_notify(self,
                   api_key,
                   class_idx):
@@ -70,7 +69,7 @@ class NotificationActs(base.InferenceActs):
 
         url = f'{base.ss_service_base_uri}soundscene/v.1.0/notification/sms'
         params = dict(api_key=api_key,
-                      class_idx=class_idx)
+                      class_idx=self.tracked_inference.record_id)
         print ('sending sms')
 
         r = requests.get(url=url,
@@ -92,12 +91,12 @@ if __name__ == '__main__':
                       operator='greater_than',
                       value=args.confidence_threshold)
 
-    record_audio = dict(name='record_audio',
-                        params=dict(size=20))
-
     notify = dict(name='ss_notify',
                   params=dict(api_key=api_key,
                               class_idx=args.index))
+    record_emb = dict(name='ss_record',
+                      params=dict(api_key=api_key))
+
     reset_act_win = dict(name='reset_act_window',
                          params=dict(duration=args.sleep_action_duration))
     reset_win = dict(name='reset_window',
@@ -112,7 +111,7 @@ if __name__ == '__main__':
         {'conditions': {
             'all': [tracked_idx, cnt_exceeded, base.act_win]
         },
-            'actions':[record_audio, notify, reset_act_win, base.reset_cnt]
+            'actions':[record_emb, notify, reset_act_win, base.reset_cnt]
         },
         {'conditions': {
             'all': [base.window_elapsed]

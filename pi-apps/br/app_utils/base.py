@@ -87,6 +87,78 @@ class InferenceActs(actions.BaseActions):
     def inc_cnt(self):
         self.tracked_inference.cnt += 1
 
+    @staticmethod
+    def _get_embedding_file(embeddings):
+        import io
+        emb_f = io.BytesIO()
+        np.save(emb_f, embeddings)
+        emb_f.seek(0)
+        return emb_f
+
+    @staticmethod
+    def _get_compressed_archive(t):
+        import re
+        import glob
+        import io
+        import gzip
+        arch_dt = datetime.datetime.fromtimestamp(t)
+        arch_dir = os.path.join(
+            '/archive', str(arch_dt.year), str(arch_dt.timetuple().tm_yday))
+
+        for _f in glob.glob(f'{arch_dir}/*.raw'):
+            fname = os.path.basename(_f)
+            m = re.match(
+                r'(?P<timestamp>[^-]+)-(?P<duration>[^-]+).*', fname)
+            ts = float(m.group('timestamp'))
+            dur = int(m.group('duration'))
+            f_start_dt = datetime.datetime.fromtimestamp(ts)
+            f_end_dt = f_start_dt + datetime.timedelta(seconds=dur)
+
+            if arch_dt >= f_start_dt and arch_dt < f_end_dt:
+                with open(_f, 'rb') as arch_f:
+                    # found the archive
+                    gzip_f = io.BytesIO()
+                    with gzip.open(gzip_f, 'wb') as to_file:
+                        to_file.write(arch_f.read())
+                    gzip_f.seek(0)
+                    return gzip_f
+        return None
+
+    @staticmethod
+    def _get_wav(t):
+        import re
+        import glob
+        import io
+        import gzip
+        arch_dt = datetime.datetime.fromtimestamp(t)
+        arch_dir = os.path.join(
+            '/archive', str(arch_dt.year), str(arch_dt.timetuple().tm_yday))
+
+        for _f in glob.glob(f'{arch_dir}/*.raw'):
+            fname = os.path.basename(_f)
+            m = re.match(
+                r'(?P<timestamp>[^-]+)-(?P<duration>[^-]+).*', fname)
+            ts = float(m.group('timestamp'))
+            dur = int(m.group('duration'))
+            f_start_dt = datetime.datetime.fromtimestamp(ts)
+            f_end_dt = f_start_dt + datetime.timedelta(seconds=dur)
+
+            if arch_dt >= f_start_dt and arch_dt < f_end_dt:
+                with open(_f, 'rb') as arch_f:
+                    # found the archive
+                    wav_f = io.BytesIO()
+
+                    popen_args = ['ffmpeg', '-f', 's16le', '-ac', str(channels), '-ar',
+                                  str(rate), '-i', url_name, '-f', 'mp3', 'pipe:1']
+
+                    proc = Popen(popen_args, stdout=PIPE)
+
+                    wav_f.write(proc.stdout.read())
+                    wav_f.seek(0)
+                    return wav_f
+        return None
+
+
 
 # Default action wiring
 reset_cnt = dict(name='reset_cnt',
