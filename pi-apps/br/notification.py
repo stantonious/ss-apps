@@ -62,6 +62,8 @@ class NotificationActs(base.InferenceActs):
             print ('ss response', r, vars(r))
             self.tracked_inference.record_id = None
 
+    @actions.rule_action(params={'api_key': fields.FIELD_TEXT,
+                                 'class_idx': fields.FIELD_NUMERIC})
     def ss_notify(self,
                   api_key,
                   class_idx):
