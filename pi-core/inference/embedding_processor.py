@@ -47,7 +47,6 @@ def generate_embeddings(frm_rcv,
                         normalized_audio, RATE)
                     mel_samples = mel_samples.astype(dtype=np.float32)
 
-                    print ('mel shapes',normalized_audio.shape,mel_samples.shape)
                     interpreter.set_tensor(
                         input_details[0]['index'], mel_samples)
                     interpreter.invoke()
@@ -56,7 +55,6 @@ def generate_embeddings(frm_rcv,
 
                     postprocessed_batch = pproc.postprocess(output_data)
                     t = aud_time
-                    print ('pp shape',postprocessed_batch.shape)
                     for i,_n in enumerate(postprocessed_batch):
                         emb_snd.send((t, _n))
                         if emb_rec_snd:
