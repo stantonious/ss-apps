@@ -1,4 +1,4 @@
-#!/home/pi/venvs/ss/bin/python2
+#!/usr/bin/python
 import numpy as np
 import sys
 import tensorflow as tf
@@ -8,7 +8,7 @@ import json
 import time
 from threading import Thread
 import pika
-from inference import record_processor, embedding_processor, audio_processor, framing_processor
+from inference import audio_archive_processor, embedding_processor, audio_processor, framing_processor
 
 
 RATE = 16000
@@ -25,7 +25,6 @@ rec_rcv, rec_snd = multiprocessing.Pipe(False)
 frm_rcv, frm_snd = multiprocessing.Pipe(False)
 cmd_rcv, cmd_snd = multiprocessing.Pipe(False)
 emb_rcv, emb_snd = multiprocessing.Pipe(False)
-emb_rec_rcv, emb_rec_snd = multiprocessing.Pipe(False)
 aud_cmd_rcv, aud_cmd_snd = multiprocessing.Pipe(False)
 
 shift_window = 1
@@ -194,6 +193,8 @@ def infer(emb_rcv):
                                       routing_key='',
                                       body=json.dumps(dict(time=batch_times[seq_len - 1],
                                                            inferences=inferences,
+                                                           embeddings=np.asarray(
+                                                               batch_embeddings[:seq_len], dtype=np.uint8).tolist(),
                                                            idxs=class_idxs.tolist())))
                 # idxs=output_data['idxs'].tolist())))#class_idxs.tolist())))
                 batch_embeddings = batch_embeddings[shift_window:]
@@ -210,7 +211,7 @@ def monitor_processes():
         target=embedding_processor.generate_embeddings, args=(frm_rcv,
                                                               emb_snd,
                                                               mon_snd,
-                                                              emb_rec_snd,
+                                                              None,
                                                               aud_cmd_rcv,
                                                               RATE))
     emb_p.start()
@@ -223,14 +224,12 @@ def monitor_processes():
                                                    CHANNELS))
     aud_p.start()
     rec_p = multiprocessing.Process(
-        target=record_processor.record_audio, args=(rec_rcv,
-                                                    cmd_rcv,
-                                                    emb_rec_rcv,
-                                                    RATE,
-                                                    CHANNELS,
-                                                    20,
-                                                    '/archive'
-                                                    ))
+        target=audio_archive_processor.archive_audio, args=(rec_rcv,
+                                                            RATE,
+                                                            CHANNELS,
+                                                            20,
+                                                            '/archive'
+                                                            ))
 
     rec_p.start()
     frm_p = multiprocessing.Process(
@@ -252,7 +251,7 @@ def monitor_processes():
                 target=embedding_processor.generate_embeddings, args=(frm_rcv,
                                                                       emb_snd,
                                                                       mon_snd,
-                                                                      emb_rec_snd,
+                                                                      None,
                                                                       aud_cmd_rcv,
                                                                       RATE))
             emb_p.start()
@@ -280,14 +279,12 @@ def monitor_processes():
         elif not rec_p.is_alive():
             print ("RECORDING PROCESS DIED...Restarting")
             rec_p = multiprocessing.Process(
-                target=record_processor.record_audio, args=(rec_rcv,
-                                                            cmd_rcv,
-                                                            emb_rec_rcv,
-                                                            RATE,
-                                                            CHANNELS,
-                                                            20,
-                                                            '/archive'
-                                                            ))
+                target=audio_archive_processor.archive_audio, args=(rec_rcv,
+                                                                    RATE,
+                                                                    CHANNELS,
+                                                                    20,
+                                                                    '/archive'
+                                                                    ))
             rec_p.start()
         else:
             time.sleep(.2)

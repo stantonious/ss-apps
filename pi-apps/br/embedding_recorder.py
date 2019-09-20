@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/home/pi/venvs/ss/bin/python3
 '''
 Created on Aug 28, 2019
 
@@ -7,6 +7,7 @@ Created on Aug 28, 2019
 import argparse
 import time
 import json
+import datetime
 import sys
 import os
 import pika
@@ -26,7 +27,14 @@ parser.add_argument('-i', '--index', type=int, required=True)
 api_key = os.environ.get('SS_API_KEY')
 
 
-class NotificationActs(base.InferenceActs):
+class EmbeddingInf(base.Inference):
+    def __init__(self, idx):
+        super().__init__(idx)
+        self.embeddings = None
+        self.time = None
+
+
+class RecorderActs(base.InferenceActs):
 
     def __init__(self, tracked_inference):
         super().__init__(tracked_inference)
@@ -46,7 +54,7 @@ class NotificationActs(base.InferenceActs):
         files['embeddings'] = self._get_embedding_file(
             self.tracked_inference.embeddings)
         files['params'] = json.dumps(params)
-        aud_arch = self._get_wav(self.tracked_inference.time)
+        aud_arch = self._get_compressed_archive(self.tracked_inference.time)
 
         if aud_arch:
             files['audio_archive'] = aud_arch
@@ -62,23 +70,6 @@ class NotificationActs(base.InferenceActs):
             print ('ss response', r, vars(r))
             self.tracked_inference.record_id = None
 
-    @actions.rule_action(params={'api_key': fields.FIELD_TEXT,
-                                 'class_idx': fields.FIELD_NUMERIC})
-    def ss_notify(self,
-                  api_key,
-                  class_idx):
-        import requests
-
-        url = f'{base.ss_service_base_uri}soundscene/v.1.0/notification/sms'
-        params = dict(api_key=api_key,
-                      class_id=self.tracked_inference.record_id)
-        print ('sending sms')
-
-        r = requests.get(url=url,
-                         params=params)
-
-        print ('ss response', r.json())
-
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -93,12 +84,8 @@ if __name__ == '__main__':
                       operator='greater_than',
                       value=args.confidence_threshold)
 
-    notify = dict(name='ss_notify',
-                  params=dict(api_key=api_key,
-                              class_idx=args.index))
     record_emb = dict(name='ss_record',
                       params=dict(api_key=api_key))
-
     reset_act_win = dict(name='reset_act_window',
                          params=dict(duration=args.sleep_action_duration))
     reset_win = dict(name='reset_window',
@@ -113,7 +100,7 @@ if __name__ == '__main__':
         {'conditions': {
             'all': [tracked_idx, cnt_exceeded, base.act_win]
         },
-            'actions':[record_emb, notify, reset_act_win, base.reset_cnt]
+            'actions':[record_emb, reset_act_win, base.reset_cnt]
         },
         {'conditions': {
             'all': [base.window_elapsed]
@@ -130,7 +117,7 @@ if __name__ == '__main__':
     result = channel.queue_declare(queue='', exclusive=True)
     channel.queue_bind(queue=result.method.queue, exchange='inference')
 
-    inf = base.Inference(idx=args.index)
+    inf = EmbeddingInf(idx=args.index)
 
     def _callback(ch, method, properties, body):
         try:
@@ -148,7 +135,7 @@ if __name__ == '__main__':
 
             run_all(rule_list=rules,
                     defined_variables=base.InferenceVars(inf),
-                    defined_actions=NotificationActs(inf),
+                    defined_actions=RecorderActs(inf),
                     stop_on_first_trigger=False)
 
         except Exception as e:

@@ -10,6 +10,7 @@ import json
 import sys
 import pika
 import numpy as np
+from app_utils import base
 from business_rules import variables, actions, run_all, fields
 
 parser = argparse.ArgumentParser(
@@ -22,54 +23,10 @@ parser.add_argument('-c', '--confidence-threshold', type=float, required=True)
 parser.add_argument('-p', '--pause-duration', type=int, required=True)
 
 
-class Inference(object):
-    def __init__(self, idx):
-        self.last_conf = 0
-        self.idx = idx
-        self.cnt = 0
-        self.act_expire = 0
-        self.win_expire = 0
-
-
-class InferenceVars(variables.BaseVariables):
+class BackoffActs(base.InferenceActs):
 
     def __init__(self, tracked_inference):
-        self.tracked_inference = tracked_inference
-
-    @variables.numeric_rule_variable(label='current confidence')
-    def last_conf(self):
-        return self.tracked_inference.last_conf
-
-    @variables.numeric_rule_variable(label='idx')
-    def idx(self):
-        return self.tracked_inference.idx
-
-    @variables.numeric_rule_variable(label='cnt')
-    def cnt(self):
-        return self.tracked_inference.cnt
-
-    @variables.numeric_rule_variable(label='action expire time')
-    def act_expire(self):
-
-        return self.act_expire
-
-    @variables.numeric_rule_variable(label='window expire time')
-    def win_expire(self):
-        return self.win_expire
-
-    @variables.numeric_rule_variable(label='action expire time')
-    def time_to_action(self):
-        return max([0, self.tracked_inference.act_expire - time.time()])
-
-    @variables.numeric_rule_variable(label='window expire time')
-    def time_to_window(self):
-        return max([0, self.tracked_inference.win_expire - time.time()])
-
-
-class InferenceActs(actions.BaseActions):
-
-    def __init__(self, tracked_inference):
-        self.tracked_inference = tracked_inference
+        super().__init__(tracked_inference)
 
     @actions.rule_action(params={"seconds": fields.FIELD_NUMERIC})
     def pause_audio(self, seconds):
@@ -85,23 +42,6 @@ class InferenceActs(actions.BaseActions):
                               routing_key='audio_control',
                               body=json.dumps(d))
 
-    @actions.rule_action(params={})
-    def reset_cnt(self):
-        print ('resetting cnt', self.tracked_inference.cnt)
-        self.tracked_inference.cnt = 0
-
-    @actions.rule_action(params={'duration': fields.FIELD_NUMERIC})
-    def reset_window(self, duration):
-        self.tracked_inference.win_expire = time.time() + duration
-
-    @actions.rule_action(params={'duration': fields.FIELD_NUMERIC})
-    def reset_act_window(self, duration):
-        self.tracked_inference.act_expire = time.time() + duration
-
-    @actions.rule_action(params={})
-    def inc_cnt(self):
-        self.tracked_inference.cnt += 1
-
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -115,37 +55,27 @@ if __name__ == '__main__':
     inf_thresh = dict(name='last_conf',
                       operator='greater_than',
                       value=args.confidence_threshold)
-    act_win = dict(name='time_to_action',
-                   operator='equal_to',
-                   value=0)
-    window_elapased = dict(name='time_to_window',
-                           operator='equal_to',
-                           value=0)
     pause_audio = dict(name='pause_audio',
                        params=dict(seconds=args.pause_duration))
     reset_act_win = dict(name='reset_act_window',
                          params=dict(duration=args.notification_window))
     reset_win = dict(name='reset_window',
                      params=dict(duration=args.event_window))
-    reset_cnt = dict(name='reset_cnt',
-                     params=dict())
-    inc_cnt = dict(name='inc_cnt',
-                   params=dict())
     rules = [
         {'conditions': {
             'all': [inf_thresh]
         },
-            'actions':[inc_cnt]
+            'actions':[base.inc_cnt]
         },
         {'conditions': {
-            'all': [silence_idx, cnt_exceeded, act_win]
+            'all': [silence_idx, cnt_exceeded, base.act_win]
         },
-            'actions':[pause_audio, reset_act_win, reset_cnt]
+            'actions':[pause_audio, reset_act_win, base.reset_cnt]
         },
         {'conditions': {
-            'all': [window_elapased]
+            'all': [base.window_elapsed]
         },
-            'actions':[reset_win, reset_cnt]
+            'actions':[reset_win, base.reset_cnt]
         }
     ]
 
@@ -157,7 +87,7 @@ if __name__ == '__main__':
     result = channel.queue_declare(queue='', exclusive=True)
     channel.queue_bind(queue=result.method.queue, exchange='inference')
 
-    inf = Inference(idx=500)
+    inf = base.Inference(idx=500)
 
     def _callback(ch, method, properties, body):
         try:
@@ -172,8 +102,8 @@ if __name__ == '__main__':
             inf.last_conf = conf
 
             run_all(rule_list=rules,
-                    defined_variables=InferenceVars(inf),
-                    defined_actions=InferenceActs(inf),
+                    defined_variables=base.InferenceVars(inf),
+                    defined_actions=BackoffActs(inf),
                     stop_on_first_trigger=False)
 
         except Exception as e:

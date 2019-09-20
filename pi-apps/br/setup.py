@@ -12,7 +12,8 @@ setup(name='ss_br_apps',
       install_requires=[
           'business_rules',
           'numpy',
-          'pika'
+          'pika',
+          'requests'
       ],
       description='''br apps.
                  ''',
@@ -20,6 +21,7 @@ setup(name='ss_br_apps',
       author_email='bryan.w.staley@gmail.com',
       scripts=['audio_recorder.py',
                'backoff.py',
-               'notification.py'],
-      packages=[]
+               'notification.py',
+               'embedding_recorder.py'],
+      packages=['app_utils']
       )
