@@ -272,7 +272,7 @@ def monitor_processes():
                 target=embedding_processor.generate_embeddings, args=(frm_rcv,
                                                                       emb_snd,
                                                                       mon_snd,
-                                                                      emb_rec_snd,
+                                                                      None,
                                                                       aud_cmd_rcv,
                                                                       RATE))
             emb_p.start()
