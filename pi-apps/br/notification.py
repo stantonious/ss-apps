@@ -38,10 +38,11 @@ class NotificationActs(base.InferenceActs):
         import base64
 
         url = f'{base.ss_service_base_uri}soundscene/v.1.0/classification/record'
-        params = dict(api_key=api_key,
+        params = dict(
                       class_idx=self.tracked_inference.idx,
                       class_conf=self.tracked_inference.last_conf,
                       )
+        q_params=dict(api_key=api_key)
         files = dict()
         files['embeddings'] = self._get_embedding_file(
             self.tracked_inference.embeddings)
@@ -54,6 +55,7 @@ class NotificationActs(base.InferenceActs):
         print ('recording sms')
 
         r = requests.post(url=url,
+                          params=q_params,
                           files=files)
 
         if r.status_code == 200:

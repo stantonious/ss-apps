@@ -14,7 +14,7 @@ import numpy as np
 import datetime
 from business_rules import variables, actions, run_all, fields
 
-ss_service_base_uri = 'https://mcm-dev-187021.appspot.com/'
+ss_service_base_uri = 'https://services.soundscene.org/'
 
 import csv
 class_mapping = {}
