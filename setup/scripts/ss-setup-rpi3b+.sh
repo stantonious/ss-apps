@@ -1,11 +1,24 @@
 #!/bin/sh
 sudo apt-get update
 
+#install useful utils
+sudo apt-get install -y vim bc git
+
+
+tmp_folder=/tmp/dumping_ground
+mkdir ${tmp_folder}
+pushd ${tmp_folder}
+
+#install seeed mic array
+git clone https://github.com/respeaker/seeed-voicecard.git
+pushd seeed-voicecard
+sudo ./install.sh
+popd 
+
 #install system packages
 sudo apt-get install -y openmpi-bin libopenmpi-dev libhdf5-dev portaudio19-dev python-scipy llvm ffmpeg libblas3 liblapack3 liblapack-dev libblas-dev libatlas-base-dev
 
-#install useful utils
-sudo apt-get install -y vim bc git
+
 #install python env
 sudo apt-get install -y python-pip python3-virtualenv python3-dev
 mkdir ~/venvs && cd ~/venvs
@@ -13,9 +26,6 @@ python3 /usr/lib/python3/dist-packages/virtualenv.py  --system-site-packages -p 
 echo 'source ~/venvs/ss/bin/activate' >> ~/.bashrc
 source ~/venvs/ss/bin/activate
 
-tmp_folder=/tmp/dumping_ground
-mkdir ${tmp_folder}
-pushd ${tmp_folder}
 
 # get setup scripts
 git clone https://bitbucket.org/stantonious/ss-apps.git
@@ -40,11 +50,7 @@ pip3 install tensorflow-1.14.0-cp37-cp37m-linux_armv7l.whl
 sudo apt-get install -y --only-upgrade alsa-utils
 sudo usermod -a -G audio pi
 
-#install seeed 4-mic array
-git clone https://github.com/respeaker/seeed-voicecard.git
-pushd seeed-voicecard
-sudo ./install.sh
-popd 
+
 
 #install rabbitmq
 sudo curl -s https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.deb.sh | sudo bash

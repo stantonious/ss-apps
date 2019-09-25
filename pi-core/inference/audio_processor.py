@@ -15,28 +15,29 @@ FORMAT = pyaudio.paInt32
 
 audio = pyaudio.PyAudio()
 
+
 def record_audio(aud_snd,
                  rec_snd=None,
                  rate=16000,
                  chunk=1024,
-                 input_idx=[1,2],
+                 input_idx=[1, 2],
                  channels=1,
                  record_secs=None,
                  reconnect_audio=True,
                  ):
     print ('channels', channels)
-    time.sleep(5) #provide some time for the other processors to init
+    time.sleep(5)  # provide some time for the other processors to init
 
     for _i in input_idx:
         logger.info('%s (%s) %s', _i, input_idx,
                     audio.get_device_info_by_index(_i)['name'])
     # start Recording
     stream = None
-    
+
     for _i in input_idx:
         try:
-            logger.info('trying idx:%s',_i)
-            #if 'seeed' not in audio.get_device_info_by_index(_i)['name']:
+            logger.info('trying idx:%s', _i)
+            # if 'seeed' not in audio.get_device_info_by_index(_i)['name']:
             #    print 'skipping',audio.get_device_info_by_index(_i)['name']
             #    continue
             stream = audio.open(format=audio.get_format_from_width(2),
@@ -45,12 +46,12 @@ def record_audio(aud_snd,
                                 input=True,
                                 input_device_index=_i,
                                 frames_per_buffer=chunk)
-            logger.info('connected to idx:%s',_i)
+            logger.info('connected to idx:%s', _i)
             break
         except Exception as e:
-            time.sleep(1) #time for audio card to init
+            time.sleep(1)  # time for audio card to init
             logger.info(e)
-            logger.info('unable to connect to idx:%s',_i)
+            logger.info('unable to connect to idx:%s', _i)
 
     if stream == None:
         return -1
@@ -60,8 +61,8 @@ def record_audio(aud_snd,
         sys.stdout.write('.')
         sys.stdout.flush()
         try:
-            data = np.fromstring(stream.read(chunk, exception_on_overflow=True),np.int16)
-            #data = np.frombuffer(stream.read(chunk, exception_on_overflow=True),np.int16)
+            data = np.fromstring(stream.read(
+                chunk, exception_on_overflow=True), np.int16)
 
             if channels > 1:
                 data = data.reshape(-1, channels)
@@ -74,24 +75,25 @@ def record_audio(aud_snd,
             stream.close()
             if reconnect_audio:
                 for _i in input_idx:
-                    print ('audio name',audio.get_device_info_by_index(_i)['name'])
-                    #if 'seeed' not in audio.get_device_info_by_index(_i)['name']:
+                    print ('audio name',
+                           audio.get_device_info_by_index(_i)['name'])
+                    # if 'seeed' not in audio.get_device_info_by_index(_i)['name']:
                     #    print 'skipping',audio.get_device_info_by_index(_i)['name']
                     #    continue
                     try:
-                        logger.info('trying idx:%s',_i)
+                        logger.info('trying idx:%s', _i)
                         stream = audio.open(format=audio.get_format_from_width(2),
                                             channels=channels,
                                             rate=rate,
                                             input=True,
                                             input_device_index=_i,
                                             frames_per_buffer=chunk)
-                        logger.info('connected to idx:%s',_i)
+                        logger.info('connected to idx:%s', _i)
                         break
                     except Exception as e:
-                        time.sleep(1) #time for audio card to init
+                        time.sleep(1)  # time for audio card to init
                         logger.info(e)
-                        logger.info('unable to connect to idx:%s',_i)
+                        logger.info('unable to connect to idx:%s', _i)
                 continue
             else:
                 raise e
