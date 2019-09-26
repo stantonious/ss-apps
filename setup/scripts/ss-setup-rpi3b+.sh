@@ -1,9 +1,14 @@
-#!/bin/sh
+#!/bin/bash
+set -x 
+set -e
+
 sudo apt-get update
 
 #install useful utils
-sudo apt-get install -y vim bc git
+sudo apt-get install -y vim bc git  python-pip python3-virtualenv python3-dev
 
+#install system packages
+sudo apt-get install -y openmpi-bin libopenmpi-dev libhdf5-dev portaudio19-dev python-scipy llvm ffmpeg libblas3 liblapack3 liblapack-dev libblas-dev libatlas-base-dev
 
 tmp_folder=/tmp/dumping_ground
 mkdir ${tmp_folder}
@@ -15,16 +20,12 @@ pushd seeed-voicecard
 sudo ./install.sh
 popd 
 
-#install system packages
-sudo apt-get install -y openmpi-bin libopenmpi-dev libhdf5-dev portaudio19-dev python-scipy llvm ffmpeg libblas3 liblapack3 liblapack-dev libblas-dev libatlas-base-dev
-
-
 #install python env
-sudo apt-get install -y python-pip python3-virtualenv python3-dev
-mkdir ~/venvs && cd ~/venvs
+mkdir ~/venvs && pushd ~/venvs
 python3 /usr/lib/python3/dist-packages/virtualenv.py  --system-site-packages -p /usr/bin/python3 ss
 echo 'source ~/venvs/ss/bin/activate' >> ~/.bashrc
 source ~/venvs/ss/bin/activate
+popd
 
 
 # get setup scripts
@@ -47,10 +48,8 @@ wget -O tensorflow-1.14.0-cp37-cp37m-linux_armv7l.whl https://github.com/PINTO03
 pip3 install tensorflow-1.14.0-cp37-cp37m-linux_armv7l.whl 
 
 #pulseaudio
-sudo apt-get install -y --only-upgrade alsa-utils
-sudo usermod -a -G audio pi
-
-
+#sudo apt-get install -y --only-upgrade alsa-utils
+#sudo usermod -a -G audio pi
 
 #install rabbitmq
 sudo curl -s https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.deb.sh | sudo bash
@@ -85,14 +84,19 @@ done
 sudo mkdir /archive && sudo chown pi:pi /archive
 (crontab -l 2>/dev/null; echo "0 0 * * * find /archive -type f -mtime +2 -delete") | crontab -
 
+set +e
 # Install the awesome RaspiWifi
-git clone https://github.com/jasbur/RaspiWiFi.git
-pushd RaspiWiFi
-sudo python3 initial_setup.py
+raspi_dir=/usr/lib/raspbiwifi
+if [ ! -d "$raspi_dir" ]; then
+     git clone https://github.com/bryanstaley/RaspiWiFi.git
+     pushd RaspiWiFi
+     sudo python3 initial_setup.py
+     popd 
+fi
 
 #clean up
 popd
-rm -rf ${tmp_folder}
+sudo rm -rf ${tmp_folder}
 
 echo 'please reboot!'
 
