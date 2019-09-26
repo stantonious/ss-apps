@@ -13,7 +13,9 @@ setup(name='ss_br_apps',
           'business_rules',
           'numpy',
           'pika',
-          'requests'
+          'requests',
+          'spidev',
+          'colour'
       ],
       description='''br apps.
                  ''',
