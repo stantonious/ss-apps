@@ -10,10 +10,9 @@ import json
 import sys
 import os
 import pika
-from app_utils import base
+from app_utils import base, apa102
 import numpy as np
 import colour
-from app_utils import apa102
 from business_rules import variables, actions, run_all, fields
 
 parser = argparse.ArgumentParser(
@@ -54,6 +53,7 @@ class NotificationActs(base.InferenceActs):
                                int(0),
                                int(0),
                                int(0))
+        self.dev.show()
 
 
 if __name__ == '__main__':
@@ -70,11 +70,11 @@ if __name__ == '__main__':
                       value=args.confidence_threshold)
 
     change_led = dict(name='change_led_color',
-                      params=dict(idx=args.led_id,
+                      params=dict(idx=int(args.led_id),
                                   color=args.led_color))
 
     off_led = dict(name='change_led_color',
-                   params=dict(idx=args.led_id,
+                   params=dict(idx=int(args.led_id),
                                color=None))
 
     reset_act_win = dict(name='reset_act_window',
@@ -125,7 +125,7 @@ if __name__ == '__main__':
             inf.time = d['time']
 
             run_all(rule_list=rules,
-                    defined_variables=base.InferenceVars(inf),
+                    defined_variables=base.InferenceVars(inf, 3),
                     defined_actions=NotificationActs(inf),
                     stop_on_first_trigger=False)
 
