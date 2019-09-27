@@ -13,7 +13,7 @@ import pika
 from app_utils import base
 import numpy as np
 import colour
-import apa102
+from app_utils import apa102
 from business_rules import variables, actions, run_all, fields
 
 parser = argparse.ArgumentParser(
