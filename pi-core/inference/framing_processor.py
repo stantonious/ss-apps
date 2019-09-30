@@ -16,11 +16,12 @@ def frame_audio(aud_rcv,
                 frm_snd,
                 rate,
                 ):
-    batches = None 
+    batches = None
     while True:
-        data = np.asarray(aud_rcv.recv())
-        batches = np.concatenate((batches,data),axis=0) if batches is not None else data
-        #batches.extend(data)
+        data = aud_rcv.recv()
+        batches = np.concatenate(
+            (batches, data), axis=0) if batches is not None else data
+        # batches.extend(data)
 
         if len(batches) >= rate * num_secs_to_process:  # CHUNK * num_batches:
             normalized_audio, batches = np.split(batches,[rate * num_secs_to_process])
