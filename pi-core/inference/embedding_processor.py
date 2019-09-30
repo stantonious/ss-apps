@@ -23,7 +23,6 @@ def generate_embeddings(frm_rcv,
     interpreter = tf.lite.Interpreter(
         model_path="/opt/soundscape/vggish.tflite")
     interpreter.allocate_tensors()
-    print ('int vars', vars(interpreter))
 
     # Get input and output tensors.
     input_details = interpreter.get_input_details()

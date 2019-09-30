@@ -49,7 +49,6 @@ def update(ys, time_step, idxs):
             avgs.append(t[-1])
         return avgs
 
-    print (datetime.datetime.fromtimestamp(time_step))
     y_avgs = conv(ys)
     y_avgs_idxs = zip(y_avgs, idxs)
     for i, (y, idx) in enumerate(y_avgs_idxs):

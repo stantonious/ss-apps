@@ -43,7 +43,7 @@ def record_audio(rec_rcv,
                 emb_fname = os.path.join(
                     buffer_dir, '{}-emb.npy'.format(dump_args['command']))
 
-            print ('trying to writing',dump_fname)
+            print ('trying to write',dump_fname)
             np.asarray(_buffer,dtype=np.int16)[-dump_size*channels*rate:].tofile(dump_fname)
             np.save(emb_fname,_emb_buffer[-dump_size:])
 

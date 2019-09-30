@@ -125,9 +125,7 @@ def infer_1csvm(emb_rcv):
                 np.save('/tmp/emb', _e)
                 _e = None
 
-            print ('emb', embedding.shape)
             r = mdl.predict(embedding.reshape(1, -1))
-            print ('preds', r)
             channel.basic_publish(exchange='embeddings',
                                   routing_key='',
                                   body=json.dumps(dict(time=t,
