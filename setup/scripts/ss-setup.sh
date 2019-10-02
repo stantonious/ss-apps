@@ -74,7 +74,10 @@ sudo curl -XGET -o ${ss_dir}/1va-whistling.tflite "https://www.googleapis.com/st
 sudo curl -XGET -o ${ss_dir}/1va-music.tflite "https://www.googleapis.com/storage/v1/b/ss-models/o/1va-music.tflite?alt=media"
 sudo curl -XGET -o ${ss_dir}/1va-dog.tflite "https://www.googleapis.com/storage/v1/b/ss-models/o/1va-dog.tflite?alt=media"
 sudo curl -XGET -o ${ss_dir}/hio-nobaby.tflite "https://www.googleapis.com/storage/v1/b/ss-models/o/hio-nobaby.tflite?alt=media"
-sudo rm  ${ss_dir}/soundscape.tflite
+
+if [ ! -d "${ss_dir}/soundscape.tflite" ]; then
+	sudo rm  ${ss_dir}/soundscape.tflite
+fi
 sudo ln -s  ${ss_dir}/hio-nobaby.tflite  ${ss_dir}/soundscape.tflite
 sudo curl -XGET -o ${ss_dir}/vggish.tflite "https://www.googleapis.com/storage/v1/b/ss-models/o/vggish.tflite?alt=media"
 sudo curl -XGET -o ${audioset_dir}/class_labels_indices.csv "http://storage.googleapis.com/us_audioset/youtube_corpus/v1/csv/class_labels_indices.csv"
