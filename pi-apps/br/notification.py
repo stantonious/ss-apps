@@ -39,10 +39,10 @@ class NotificationActs(base.InferenceActs):
 
         url = f'{base.ss_service_base_uri}soundscene/v.1.0/classification/record'
         params = dict(
-                      class_idx=self.tracked_inference.idx,
-                      class_conf=self.tracked_inference.last_conf,
-                      )
-        q_params=dict(api_key=api_key)
+            class_idx=self.tracked_inference.idx,
+            class_conf=self.tracked_inference.last_conf,
+        )
+        q_params = dict(api_key=api_key)
         files = dict()
         files['embeddings'] = self._get_embedding_file(
             self.tracked_inference.embeddings)
@@ -71,6 +71,9 @@ class NotificationActs(base.InferenceActs):
                   class_idx):
         import requests
 
+        if self.tracked_inference.record_id is None:
+            print ('No tracked record id')
+            return
         url = f'{base.ss_service_base_uri}soundscene/v.1.0/notification/sms'
         params = dict(api_key=api_key,
                       class_id=self.tracked_inference.record_id)
