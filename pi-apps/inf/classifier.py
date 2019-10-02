@@ -231,7 +231,7 @@ def monitor_processes():
         target=audio_archive_processor.archive_audio, args=(rec_rcv,
                                                             RATE,
                                                             CHANNELS,
-                                                            20,
+                                                            5,
                                                             '/archive'
                                                             ))
 
@@ -286,7 +286,7 @@ def monitor_processes():
                 target=audio_archive_processor.archive_audio, args=(rec_rcv,
                                                                     RATE,
                                                                     CHANNELS,
-                                                                    20,
+                                                                    5,
                                                                     '/archive'
                                                                     ))
             rec_p.start()
