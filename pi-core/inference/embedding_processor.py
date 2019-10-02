@@ -22,7 +22,7 @@ def generate_embeddings(frm_rcv,
 
     # Load TFLite model and allocate tensors.
     interpreter = tf.lite.Interpreter(
-        model_path="/opt/soundscape/vggish.tflite")
+        model_path="/opt/soundscene/vggish.tflite")
     interpreter.allocate_tensors()
 
     # Get input and output tensors.
@@ -55,7 +55,7 @@ def generate_embeddings(frm_rcv,
 
                     postprocessed_batch = pproc.postprocess(output_data)
                     t = aud_time
-                    for i,_n in enumerate(postprocessed_batch):
+                    for i, _n in enumerate(postprocessed_batch):
                         emb_snd.send((t, _n))
                         if emb_rec_snd:
                             emb_rec_snd.send(_n)

@@ -152,7 +152,7 @@ def infer(emb_rcv):
 
     # Load TFLite model and allocate tensors.
     interpreter = tf.lite.Interpreter(
-        model_path="/opt/soundscape/soundscape.tflite")
+        model_path="/opt/soundscene/soundscene.tflite")
     interpreter.allocate_tensors()
 
     # Get input and output tensors.
