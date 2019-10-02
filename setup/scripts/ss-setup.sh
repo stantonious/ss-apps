@@ -2,13 +2,8 @@
 set -x 
 set -e
 
-sudo apt-get update
-
 #install useful utils
 sudo apt-get install -y vim bc git  python-pip python3-virtualenv python3-dev
-
-#install system packages
-sudo apt-get install -y openmpi-bin libopenmpi-dev libhdf5-dev portaudio19-dev python-scipy llvm ffmpeg libblas3 liblapack3 liblapack-dev libblas-dev libatlas-base-dev
 
 tmp_folder=/tmp/dumping_ground
 mkdir ${tmp_folder}
@@ -19,6 +14,11 @@ git clone https://github.com/respeaker/seeed-voicecard.git
 pushd seeed-voicecard
 sudo ./install.sh
 popd 
+
+#install system packages
+sudo apt-get install -y openmpi-bin libopenmpi-dev libhdf5-dev portaudio19-dev python-scipy llvm ffmpeg libblas3 liblapack3 liblapack-dev libblas-dev libatlas-base-dev
+
+sudo apt-get update
 
 #install python env
 mkdir ~/venvs && pushd ~/venvs
@@ -72,12 +72,13 @@ sudo curl -XGET -o ${ss_dir}/1va-water.tflite "https://www.googleapis.com/storag
 sudo curl -XGET -o ${ss_dir}/1va-whistling.tflite "https://www.googleapis.com/storage/v:1/b/ss-models/o/1va-whistling.tflite?alt=media"
 sudo curl -XGET -o ${ss_dir}/1va-music.tflite "https://www.googleapis.com/storage/v1/b/ss-models/o/1va-music.tflite?alt=media"
 sudo curl -XGET -o ${ss_dir}/1va-dog.tflite "https://www.googleapis.com/storage/v1/b/ss-models/o/1va-dog.tflite?alt=media"
+sudo curl -XGET -o ${ss_dir}/hio-nochild.tflite "https://www.googleapis.com/storage/v1/b/ss-models/o/hio-nochild.tflite?alt=media"
 sudo curl -XGET -o ${ss_dir}/hio-nobaby.tflite "https://www.googleapis.com/storage/v1/b/ss-models/o/hio-nobaby.tflite?alt=media"
 
 if [ -d "${ss_dir}/soundscene.tflite" ]; then
 	sudo rm  ${ss_dir}/soundscene.tflite
 fi
-sudo ln -s  ${ss_dir}/hio-nobaby.tflite  ${ss_dir}/soundscene.tflite
+sudo ln -s  ${ss_dir}/hio-nochild.tflite  ${ss_dir}/soundscene.tflite
 sudo curl -XGET -o ${ss_dir}/vggish.tflite "https://www.googleapis.com/storage/v1/b/ss-models/o/vggish.tflite?alt=media"
 sudo curl -XGET -o ${audioset_dir}/class_labels_indices.csv "http://storage.googleapis.com/us_audioset/youtube_corpus/v1/csv/class_labels_indices.csv"
 
