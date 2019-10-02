@@ -75,7 +75,7 @@ sudo curl -XGET -o ${ss_dir}/1va-music.tflite "https://www.googleapis.com/storag
 sudo curl -XGET -o ${ss_dir}/1va-dog.tflite "https://www.googleapis.com/storage/v1/b/ss-models/o/1va-dog.tflite?alt=media"
 sudo curl -XGET -o ${ss_dir}/hio-nobaby.tflite "https://www.googleapis.com/storage/v1/b/ss-models/o/hio-nobaby.tflite?alt=media"
 
-if [ ! -d "${ss_dir}/soundscape.tflite" ]; then
+if [ -d "${ss_dir}/soundscape.tflite" ]; then
 	sudo rm  ${ss_dir}/soundscape.tflite
 fi
 sudo ln -s  ${ss_dir}/hio-nobaby.tflite  ${ss_dir}/soundscape.tflite
