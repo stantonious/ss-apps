@@ -199,7 +199,8 @@ app_layout = layout([
     [bar_p],
     [line_p],
     [temp_p, cpu_p, ],
-    [button, button_pause],
+    # Uncomment to add pause capability
+    #[button, button_pause],
 ], sizing_mode='stretch_both')
 
 doc = curdoc()
