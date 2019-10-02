@@ -32,9 +32,9 @@ api_key = os.environ.get('SS_API_KEY')
 
 class NotificationActs(base.InferenceActs):
 
-    def __init__(self, tracked_inference, num_pixels):
+    def __init__(self, tracked_inference, led_device):
         super().__init__(tracked_inference)
-        self.dev = apa102.APA102(num_led=num_pixels)
+        self.dev = led_device
 
     @actions.rule_action(params={'idx': fields.FIELD_NUMERIC,
                                  'color': fields.FIELD_TEXT})
@@ -111,6 +111,8 @@ if __name__ == '__main__':
 
     inf = base.Inference(idx=args.index)
 
+    led_device = apa102.APA102(num_led=3)
+
     def _callback(ch, method, properties, body):
         try:
             d = json.loads(body)
@@ -127,7 +129,8 @@ if __name__ == '__main__':
 
             run_all(rule_list=rules,
                     defined_variables=base.InferenceVars(inf, 3),
-                    defined_actions=NotificationActs(inf),
+                    defined_actions=NotificationActs(
+                        inf, led_device=led_device),
                     stop_on_first_trigger=False)
 
         except Exception as e:
