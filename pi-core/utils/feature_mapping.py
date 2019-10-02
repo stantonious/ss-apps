@@ -1,8 +1,8 @@
-'''
-Created on Jul 17, 2018
-
-@author: bstaley
-'''
+""" PI core feature mapping utilities """
+__author__ = "Bryan Staley"
+__copyright__ = "Copyright 2019"
+__credits__ = []
+__license__ = "GPL"
 
 import pandas as pd
 

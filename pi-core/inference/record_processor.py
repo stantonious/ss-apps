@@ -1,8 +1,9 @@
-'''
-Created on Jan 4, 2019
+""" PI core inference audio recorder processor """
+__author__ = "Bryan Staley"
+__copyright__ = "Copyright 2019"
+__credits__ = []
+__license__ = "GPL"
 
-@author: bstaley
-'''
 import os
 import numpy as np
 import time

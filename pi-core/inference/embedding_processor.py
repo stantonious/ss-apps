@@ -1,8 +1,9 @@
-'''
-Created on Jan 4, 2019
+""" PI core inference embedding processor """
+__author__ = "Bryan Staley"
+__copyright__ = "Copyright 2019"
+__credits__ = []
+__license__ = "GPL"
 
-@author: bstaley
-'''
 from vggish import vggish_input
 from vggish import vggish_postprocess
 import tensorflow as tf

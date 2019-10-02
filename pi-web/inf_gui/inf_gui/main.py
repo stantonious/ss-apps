@@ -1,3 +1,8 @@
+""" PI app inference GUI main """
+__author__ = "Bryan Staley"
+__copyright__ = "Copyright 2019"
+__credits__ = []
+__license__ = "GPL"
 import numpy as np
 import json
 import time

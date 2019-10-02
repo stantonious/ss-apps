@@ -1,9 +1,10 @@
 #!/usr/bin/python
-'''
-Created on Aug 28, 2019
+""" Inference backoff app """
+__author__ = "Bryan Staley"
+__copyright__ = "Copyright 2019"
+__credits__ = []
+__license__ = "GPL"
 
-@author: bstaley
-'''
 import argparse
 import time
 import json

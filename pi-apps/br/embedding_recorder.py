@@ -1,9 +1,10 @@
-#!/home/pi/venvs/ss/bin/python3
-'''
-Created on Aug 28, 2019
+#!/usr/bin/python
+""" Embedding recorder """
+__author__ = "Bryan Staley"
+__copyright__ = "Copyright 2019"
+__credits__ = []
+__license__ = "GPL"
 
-@author: bstaley
-'''
 import argparse
 import time
 import json

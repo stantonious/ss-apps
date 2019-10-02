@@ -1,8 +1,9 @@
-'''
-Created on May 31, 2019
+""" pi-app setup """
+__author__ = "Bryan Staley"
+__copyright__ = "Copyright 2019"
+__credits__ = []
+__license__ = "GPL"
 
-@author: bstaley
-'''
 from distutils.core import setup
 
 version = '1.0'

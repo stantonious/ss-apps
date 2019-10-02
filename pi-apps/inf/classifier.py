@@ -1,4 +1,10 @@
 #!/usr/bin/python
+""" Classifier App """
+__author__ = "Bryan Staley"
+__copyright__ = "Copyright 2019"
+__credits__ = []
+__license__ = "GPL"
+
 import numpy as np
 import sys
 import tensorflow as tf

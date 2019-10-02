@@ -1,9 +1,9 @@
 #!/usr/bin/python
-'''
-Created on Aug 28, 2019
-
-@author: bstaley
-'''
+""" Notification App """
+__author__ = "Bryan Staley"
+__copyright__ = "Copyright 2019"
+__credits__ = []
+__license__ = "GPL"
 import argparse
 import time
 import json
