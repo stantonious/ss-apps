@@ -2,6 +2,13 @@
 set -x 
 set -e
 
+#TODO Until https://github.com/respeaker/seeed-voicecard/issues/183#issuecomment-538078165
+sudo apt-mark hold raspberrypi-kernel
+sudo apt-mark hold raspberrypi-bootloader
+sudo apt-mark hold raspberrypi-kernel-headers
+
+sudo apt-get update
+
 #install useful utils
 sudo apt-get install -y vim bc git  python-pip python3-virtualenv python3-dev
 
@@ -18,7 +25,7 @@ popd
 #install system packages
 sudo apt-get install -y openmpi-bin libopenmpi-dev libhdf5-dev portaudio19-dev python-scipy llvm ffmpeg libblas3 liblapack3 liblapack-dev libblas-dev libatlas-base-dev
 
-sudo apt-get update
+
 
 #install python env
 mkdir ~/venvs && pushd ~/venvs
