@@ -11,6 +11,8 @@ version = '1.0'
 setup(name='ss_br_apps',
       version=version,
       install_requires=[
+          'numpy',
+          'pika',
       ],
       description='''debug apps.
                  ''',

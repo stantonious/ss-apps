@@ -36,3 +36,4 @@ if __name__ == '__main__':
     channel.basic_consume(queue=result.method.queue,
                           auto_ack=True,
                           on_message_callback=_callback)
+    channel.start_consuming()
