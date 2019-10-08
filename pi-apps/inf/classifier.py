@@ -6,6 +6,7 @@ __credits__ = []
 __license__ = "GPL"
 
 import numpy as np
+import logging
 import sys
 import tensorflow as tf
 import multiprocessing
@@ -16,7 +17,19 @@ from threading import Thread
 import pika
 from inference import audio_archive_processor, embedding_processor, audio_processor, framing_processor
 
-from . import logger
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+ch = logging.StreamHandler(sys.stdout)
+ch.setLevel(logging.DEBUG)
+formatter = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+ch.setFormatter(formatter)
+logger.addHandler(ch)
+
+# add file handler
+fh = logging.FileHandler('/var/log/ss/ss.log')
+fh.setLevel(logging.DEBUG)
 
 RATE = 16000
 #RATE = 48000
