@@ -10,6 +10,8 @@ import tensorflow as tf
 import numpy as np
 import time
 
+from . import logger
+
 
 def generate_embeddings(frm_rcv,
                         emb_snd,
@@ -29,7 +31,7 @@ def generate_embeddings(frm_rcv,
     input_details = interpreter.get_input_details()
     output_details = interpreter.get_output_details()
 
-    print ('starting embedding processor', input_details[0])
+    logger.info('starting embedding processor:%s', input_details[0])
 
     resume_at = True
     while True:
@@ -38,7 +40,7 @@ def generate_embeddings(frm_rcv,
 
             if aud_cmd_rcv != None and aud_cmd_rcv.poll(.01):
                 resume_at = aud_cmd_rcv.recv()
-                print ('received embedding command:', resume_at)
+                logger.info('received embedding command:%s', resume_at)
 
             if frm_rcv.poll(.01) != None:
                 aud_time, normalized_audio = frm_rcv.recv()
@@ -63,5 +65,5 @@ def generate_embeddings(frm_rcv,
             else:
                 time.sleep(.3)
         except Exception as e:
-            print ('Embeddings handler exception:', e)
+            logger.exception('embedding handler exception!:')
             raise e

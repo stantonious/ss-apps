@@ -1,6 +1,7 @@
 To Setup
 
 ```
+sudo apt install -y git
 cd /tmp
 git clone https://bitbucket.org/stantonious/ss-apps.git
 ss-apps/setup/scripts/ss-setup.sh

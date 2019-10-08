@@ -11,9 +11,6 @@ import time
 
 from . import logger
 
-#FORMAT = pyaudio.paInt16
-FORMAT = pyaudio.paInt32
-
 audio = pyaudio.PyAudio()
 
 
@@ -26,8 +23,7 @@ def record_audio(aud_snd,
                  record_secs=None,
                  reconnect_audio=True,
                  ):
-    print ('channels', channels)
-    time.sleep(5)  # provide some time for the other processors to init
+    logger.info('channels:%s', channels)
 
     for _i in input_idx:
         logger.info('%s (%s) %s', _i, input_idx,
@@ -59,8 +55,6 @@ def record_audio(aud_snd,
     interations = int(
         rate / chunk * record_secs) if record_secs else sys.maxsize
     for _ in range(0, interations):
-        sys.stdout.write('.')
-        sys.stdout.flush()
         try:
             data = np.fromstring(stream.read(
                 chunk, exception_on_overflow=False), np.int16)
@@ -72,12 +66,12 @@ def record_audio(aud_snd,
             if rec_snd:
                 rec_snd.send(data)
         except Exception as e:
-            print (e)
+            logger.exception('Audio processor caught exception!  Restarting')
             stream.close()
             if reconnect_audio:
                 for _i in input_idx:
-                    print ('audio name',
-                           audio.get_device_info_by_index(_i)['name'])
+                    logger.info('connected to device:%s',
+                                audio.get_device_info_by_index(_i)['name'])
                     # if 'seeed' not in audio.get_device_info_by_index(_i)['name']:
                     #    print 'skipping',audio.get_device_info_by_index(_i)['name']
                     #    continue

@@ -34,25 +34,6 @@ emb_rcv, emb_snd = multiprocessing.Pipe(False)
 aud_cmd_rcv, aud_cmd_snd = multiprocessing.Pipe(False)
 
 shift_window = 1
-silence_energy_threshold = 0  # 1300000.0
-silence_duration_threshold = 10
-
-
-def energy(samples):
-    return np.sum(np.power(samples, 2.)) / float(len(samples))
-
-
-def audio_norm(data):
-    max_data = np.max(data)
-    min_data = np.min(data)
-    data = (data - min_data) / (max_data - min_data + 1e-6)
-    return data - 0.5
-
-
-running_avg_win = 100
-running_avg_conv_win = 4
-running_avg = None
-
 seq_len = 3
 
 
@@ -73,7 +54,6 @@ def dump_processor(cmd_snd):
     channel.basic_consume(queue='dump_commands',
                           auto_ack=True,
                           on_message_callback=_callback)
-    print ('Consuming!')
     channel.start_consuming()
 
 
@@ -89,56 +69,23 @@ def audio_control_processor(aud_cmd_snd=None):
         print ('sending audio control', d)
         if aud_cmd_snd:
             if d['command'] == 'on':
-                print ('turning on embeddings')
+                logger.info('turning on embeddings')
                 aud_cmd_snd.send(0)
             elif d['command'] == 'off':
-                print ('turning off embeddings')
+                logger.info('turning off embeddings')
                 aud_cmd_snd.send(sys.maxint)
             elif d['command'] == 'resume_at':
-                print ('resuming at', d['value'])
+                logger.info('resuming at', d['value'])
                 aud_cmd_snd.send(d['value'])
             else:
-                print ('received audio control command not understood', d)
+                logger.info(
+                    'received audio control command not understood:%s', d)
 
     channel.basic_consume(queue='audio_control',
                           auto_ack=True,
                           on_message_callback=_callback)
 
     channel.start_consuming()
-
-
-def infer_1csvm(emb_rcv):
-    import pickle
-    from sklearn import svm
-
-    connection = pika.BlockingConnection(
-        pika.ConnectionParameters('localhost'))
-    channel = connection.channel()
-    channel.exchange_declare(exchange='inference',
-                             exchange_type='fanout'
-                             )
-
-    mdl = pickle.load(open('/tmp/onecsvm-silence.pkl'))
-    _e = None
-    while True:
-        if emb_rcv.poll(.1):
-            t, embedding = emb_rcv.recv()
-
-            _e = np.concatenate((_e, embedding.reshape(
-                1, -1)), axis=0) if _e is not None else embedding.reshape(1, -1)
-
-            if len(_e) > 100:
-                np.save('/tmp/emb', _e)
-                _e = None
-
-            r = mdl.predict(embedding.reshape(1, -1))
-            channel.basic_publish(exchange='embeddings',
-                                  routing_key='',
-                                  body=json.dumps(dict(time=t,
-                                                       embeddings=r.tolist(),
-                                                       idxs=[500])))
-        else:
-            time.sleep(.1)
 
 
 def infer(emb_rcv):
@@ -169,7 +116,7 @@ def infer(emb_rcv):
 
     sleep_dur = .1  # secs
 
-    print ('starting inference')
+    logger.info('starting inference')
     while True:
         if emb_rcv.poll(.1):
             t, embedding = emb_rcv.recv()
@@ -248,7 +195,7 @@ def monitor_processes():
             last_heartbeat = mon_rcv.recv()
 
         if time.time() - last_heartbeat > 10:
-            print ("EMBEDDING PROCESS HUNG...Restarting",)
+            logger.warning("EMBEDDING PROCESS HUNG...Restarting",)
             os.kill(emb_p.pid, 9)  # hard kill
             emb_p.join()
             emb_p = multiprocessing.Process(
@@ -261,7 +208,7 @@ def monitor_processes():
             emb_p.start()
             last_heartbeat = time.time() + 20
         if not aud_p.is_alive():
-            print ("AUDIO PROCESS DIED...Restarting")
+            logger.warning("AUDIO PROCESS DIED...Restarting")
             aud_p = multiprocessing.Process(
                 target=audio_processor.record_audio, args=(aud_snd,
                                                            rec_snd,  # None
@@ -271,7 +218,7 @@ def monitor_processes():
                                                            CHANNELS))
             aud_p.start()
         elif not emb_p.is_alive():
-            print ("EMBEDDING PROCESS DIED...Restarting")
+            logger.warning("EMBEDDING PROCESS DIED...Restarting")
             emb_p = multiprocessing.Process(
                 target=embedding_processor.generate_embeddings, args=(frm_rcv,
                                                                       emb_snd,
@@ -281,7 +228,7 @@ def monitor_processes():
                                                                       RATE))
             emb_p.start()
         elif not rec_p.is_alive():
-            print ("RECORDING PROCESS DIED...Restarting")
+            logger.warning("RECORDING PROCESS DIED...Restarting")
             rec_p = multiprocessing.Process(
                 target=audio_archive_processor.archive_audio, args=(rec_rcv,
                                                                     RATE,
@@ -296,7 +243,6 @@ def monitor_processes():
 
 if __name__ == "__main__":
     inf_thread = Thread(target=infer, args=(emb_rcv,))
-    #inf_thread = Thread(target=infer_1csvm, args=(emb_rcv,))
     inf_thread.start()
     aud_ctrl_thread = Thread(
         target=audio_control_processor, args=(aud_cmd_snd,))
