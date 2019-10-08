@@ -9,6 +9,7 @@ import pika
 import numpy as np
 import argparse
 import time
+import json
 
 parser = argparse.ArgumentParser(
     description='debug app used to display running inferences')
@@ -27,8 +28,10 @@ if __name__ == '__main__':
     def _callback(ch, method, properties, body):
         try:
             d = json.loads(body)
-            print (d)
-            print ()
+            infs = list(zip(d['idxs'], d['inferences']))
+            infs.sort(key=lambda x: x[1], reverse=True)
+
+            print (f'{d["time"]}\t{infs}')
 
         except Exception as e:
             print ('exception ', e)
