@@ -6,7 +6,7 @@ After=ss-inf.service
 [Service]
 User=pi
 Type=simple
-ExecStart=start-notification.sh 17 .4
+ExecStart=ss-notification.sh 17 .4
 
 [Install]
 WantedBy=multi-user.target
