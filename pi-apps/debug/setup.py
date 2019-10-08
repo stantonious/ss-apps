@@ -8,7 +8,7 @@ from distutils.core import setup
 
 version = '1.0'
 
-setup(name='ss_br_apps',
+setup(name='ss_debug_apps',
       version=version,
       install_requires=[
           'numpy',
