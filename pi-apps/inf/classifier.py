@@ -16,6 +16,7 @@ from threading import Thread
 import pika
 from inference import audio_archive_processor, embedding_processor, audio_processor, framing_processor
 
+from . import logger
 
 RATE = 16000
 #RATE = 48000
@@ -48,7 +49,7 @@ def dump_processor(cmd_snd):
 
     def _callback(ch, method, properties, body):
         d = json.loads(body)
-        print ('sending dump', body)
+        logger.info('sending dump:%s', body)
         cmd_snd.send(d)
 
     channel.basic_consume(queue='dump_commands',
@@ -66,7 +67,7 @@ def audio_control_processor(aud_cmd_snd=None):
 
     def _callback(ch, method, properties, body):
         d = json.loads(body)
-        print ('sending audio control', d)
+        logger.info('sending audio control:%s', d)
         if aud_cmd_snd:
             if d['command'] == 'on':
                 logger.info('turning on embeddings')
@@ -124,12 +125,9 @@ def infer(emb_rcv):
             batch_times.append(t)
 
             if len(batch_embeddings) >= seq_len:
-
-                # sequential_input = tf.keras.preprocessing.sequence.pad_sequences(batch_embeddings[:10], 10)
                 sequential_input = np.expand_dims(
                     np.asarray(batch_embeddings[:seq_len]), 0)
                 sequential_input = sequential_input.astype(dtype=np.float32)
-                # print 'shape',sequential_input.shape
                 interpreter.set_tensor(
                     input_details[0]['index'], sequential_input[..., emb_idxs])
                 interpreter.invoke()

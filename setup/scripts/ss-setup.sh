@@ -87,6 +87,7 @@ do
 done
 
 # make ss env
+sudo mkdir /var/log/ss && sudo chown pi:pi /var/log/ss
 sudo mkdir /archive && sudo chown pi:pi /archive
 (crontab -l 2>/dev/null; echo "0 0 * * * find /archive -type f -mtime +2 -delete") | crontab -
 
