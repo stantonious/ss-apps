@@ -63,7 +63,7 @@ def record_audio(aud_snd,
         sys.stdout.flush()
         try:
             data = np.fromstring(stream.read(
-                chunk, exception_on_overflow=True), np.int16)
+                chunk, exception_on_overflow=False), np.int16)
 
             if channels > 1:
                 data = data.reshape(-1, channels)

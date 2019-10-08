@@ -2,15 +2,10 @@
 set -x 
 set -e
 
-#TODO Until https://github.com/respeaker/seeed-voicecard/issues/183#issuecomment-538078165
-sudo apt-mark hold raspberrypi-kernel
-sudo apt-mark hold raspberrypi-bootloader
-sudo apt-mark hold raspberrypi-kernel-headers
-
-sudo apt-get update
+sudo apt -y update
 
 #install useful utils
-sudo apt-get install -y vim bc git  python-pip python3-virtualenv python3-dev
+sudo apt install -y vim bc git  python-pip python3-virtualenv python3-dev
 
 tmp_folder=/tmp/dumping_ground
 mkdir ${tmp_folder}
@@ -24,8 +19,6 @@ popd
 
 #install system packages
 sudo apt-get install -y openmpi-bin libopenmpi-dev libhdf5-dev portaudio19-dev python-scipy llvm ffmpeg libblas3 liblapack3 liblapack-dev libblas-dev libatlas-base-dev
-
-
 
 #install python env
 mkdir ~/venvs && pushd ~/venvs
@@ -53,10 +46,6 @@ pip install pyaudio bokeh flask sqlalchemy pika gunicorn resampy
 #install tensorflow lite
 wget -O tensorflow-1.14.0-cp37-cp37m-linux_armv7l.whl https://github.com/PINTO0309/Tensorflow-bin/raw/master/tensorflow-1.14.0-cp37-cp37m-linux_armv7l.whl
 pip3 install tensorflow-1.14.0-cp37-cp37m-linux_armv7l.whl 
-
-#pulseaudio
-#sudo apt-get install -y --only-upgrade alsa-utils
-#sudo usermod -a -G audio pi
 
 #install rabbitmq
 sudo curl -s https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.deb.sh | sudo bash
@@ -101,14 +90,17 @@ done
 sudo mkdir /archive && sudo chown pi:pi /archive
 (crontab -l 2>/dev/null; echo "0 0 * * * find /archive -type f -mtime +2 -delete") | crontab -
 
-set +e
-# Install the awesome RaspiWifi
-raspi_dir=/usr/lib/raspbiwifi
-if [ ! -d "$raspi_dir" ]; then
-     git clone https://github.com/bryanstaley/RaspiWiFi.git
-     pushd RaspiWiFi
-     sudo python3 initial_setup.py
-     popd 
+read -p "Would you like to install RaspiWifi? (y/N)" -n 1 -r -s
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+	set +e
+	# Install the awesome RaspiWifi
+	raspi_dir=/usr/lib/raspbiwifi
+	if [ ! -d "$raspi_dir" ]; then
+	     git clone https://github.com/bryanstaley/RaspiWiFi.git
+	     pushd RaspiWiFi
+	     sudo python3 initial_setup.py
+	     popd 
+	fi
 fi
 
 #clean up

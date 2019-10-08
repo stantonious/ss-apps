@@ -1,3 +1,11 @@
+To Setup
+
+```
+cd /tmp
+git clone https://bitbucket.org/stantonious/ss-apps.git
+ss-apps/setup/scripts/ss-setup.sh
+```
+
 To Install apps
 
 `pip install git+https://git@bitbucket.org/stantonious/ss-apps.git#subdirectory="pi-core"`
