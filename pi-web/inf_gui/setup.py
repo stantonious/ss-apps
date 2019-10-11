@@ -12,7 +12,6 @@ setup(name='inf_gui',
       install_requires=['bokeh',
                         'pika',
                         'numpy',
-
                         ],
       description='''ss inference engine gui.
                  ''',
