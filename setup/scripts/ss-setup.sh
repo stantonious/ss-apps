@@ -64,17 +64,16 @@ sudo curl -XGET -o ${vggish_dir}/vggish_pca_params.npz "https://storage.googleap
 #wget -O ${vggish_dir}/ https://storage.googleapis.com/audioset/vggish_model.ckpt
 
 #get soundsscape models
-sudo curl -XGET -o ${ss_dir}/1va-water.tflite "https://www.googleapis.com/storage/v1/b/ss-models/o/1va-water.tflite?alt=media"
-sudo curl -XGET -o ${ss_dir}/1va-whistling.tflite "https://www.googleapis.com/storage/v:1/b/ss-models/o/1va-whistling.tflite?alt=media"
-sudo curl -XGET -o ${ss_dir}/1va-music.tflite "https://www.googleapis.com/storage/v1/b/ss-models/o/1va-music.tflite?alt=media"
-sudo curl -XGET -o ${ss_dir}/1va-dog.tflite "https://www.googleapis.com/storage/v1/b/ss-models/o/1va-dog.tflite?alt=media"
-sudo curl -XGET -o ${ss_dir}/hio-nochild.tflite "https://www.googleapis.com/storage/v1/b/ss-models/o/hio-nochild.tflite?alt=media"
-sudo curl -XGET -o ${ss_dir}/hio-nobaby.tflite "https://www.googleapis.com/storage/v1/b/ss-models/o/hio-nobaby.tflite?alt=media"
+declare -a models=("hio-nobaby_sigmoid_9.tflite" "hio-nobaby_softmax_9.tflite" "hio-nochild_sigmoid_9.tflite" "hio-nochild_softmax_9.tflite" )
+for i in "${models[@]}"
+do
+	sudo curl -XGET -o ${ss_dir}/"${i}" "https://www.googleapis.com/storage/v1/b/ss-models/o/${i}?alt=media"
+done
 
-if [ -d "${ss_dir}/soundscene.tflite" ]; then
+if [ -e "${ss_dir}/soundscene.tflite" ]; then
 	sudo rm  ${ss_dir}/soundscene.tflite
 fi
-sudo ln -s  ${ss_dir}/hio-nochild.tflite  ${ss_dir}/soundscene.tflite
+sudo ln -s  ${ss_dir}/${models[0]}  ${ss_dir}/soundscene.tflite
 sudo curl -XGET -o ${ss_dir}/vggish.tflite "https://www.googleapis.com/storage/v1/b/ss-models/o/vggish.tflite?alt=media"
 sudo curl -XGET -o ${audioset_dir}/class_labels_indices.csv "http://storage.googleapis.com/us_audioset/youtube_corpus/v1/csv/class_labels_indices.csv"
 

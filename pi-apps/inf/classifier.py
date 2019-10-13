@@ -48,7 +48,6 @@ emb_rcv, emb_snd = multiprocessing.Pipe(False)
 aud_cmd_rcv, aud_cmd_snd = multiprocessing.Pipe(False)
 
 shift_window = 1
-seq_len = 3
 
 
 def dump_processor(cmd_snd):
@@ -127,6 +126,7 @@ def infer(emb_rcv):
 
     class_idxs = interpreter.get_tensor(output_details[1]['index'])
     emb_idxs = interpreter.get_tensor(output_details[2]['index'])
+    seq_len = interpreter.get_tensor(output_details[3]['index'])
 
     sleep_dur = .1  # secs
 
