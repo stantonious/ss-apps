@@ -48,7 +48,7 @@ class NotificationActs(base.InferenceActs):
         files['embeddings'] = self._get_embedding_file(
             self.tracked_inference.embeddings)
         files['params'] = json.dumps(params)
-        aud_arch = self._get_wav(self.tracked_inference.time - seql_len//2)
+        aud_arch = self._get_wav(self.tracked_inference.time - seq_len//2)
 
         if aud_arch:
             files['audio_archive'] = aud_arch
