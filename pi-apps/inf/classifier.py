@@ -37,8 +37,8 @@ CHUNK = 1024
 IDX = [0, 1, 2]
 CHANNELS = 2
 #CHANNELS = 1
-INF_TTL = 20 * 60 * 1000  # usecs
-# RATE = 44100
+
+AUD_ARCHIVE_SECONDS=10
 
 aud_rcv, aud_snd = multiprocessing.Pipe(False)
 rec_rcv, rec_snd = multiprocessing.Pipe(False)
@@ -189,7 +189,7 @@ def monitor_processes():
         target=audio_archive_processor.archive_audio, args=(rec_rcv,
                                                             RATE,
                                                             CHANNELS,
-                                                            5,
+                                                            AUD_ARCHIVE_SECONDS,
                                                             '/archive'
                                                             ))
 
@@ -244,7 +244,7 @@ def monitor_processes():
                 target=audio_archive_processor.archive_audio, args=(rec_rcv,
                                                                     RATE,
                                                                     CHANNELS,
-                                                                    5,
+                                                                    AUD_ARCHIVE_SECONDS,
                                                                     '/archive'
                                                                     ))
             rec_p.start()
