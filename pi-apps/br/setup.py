@@ -26,6 +26,7 @@ setup(name='ss_br_apps',
       scripts=['audio_recorder.py',
                'backoff.py',
                'leds.py',
+               'leds_12.py',
                'notification.py',
                'embedding_recorder.py'],
       packages=['app_utils']
