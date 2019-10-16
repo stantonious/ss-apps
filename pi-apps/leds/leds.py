@@ -30,7 +30,7 @@ led_power.on()
 class LedInference(object):
     
 
-    def _init_(self,num_leds):
+    def __init__(self,num_leds):
         self.confs=[0.0] * num_leds
         self.thresh=[0.0] * num_leds
 
@@ -41,7 +41,7 @@ class LedControl():
                  colors, 
                  led_device,
                  num_leds):
-        super().__init__(tracked_inference)
+        super().__init__()
         self.colors = [None] * num_leds
         
         for _i,_c in enumerate(colors):
