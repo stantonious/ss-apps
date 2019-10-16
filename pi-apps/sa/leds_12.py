@@ -1,5 +1,5 @@
 #!/home/pi/venvs/ss/bin/python3
-""" Seeed 2hat mic LED app """
+""" Seeed 4hat mic LED app """
 __author__ = "Bryan Staley"
 __copyright__ = "Copyright 2019"
 __credits__ = []
@@ -14,7 +14,6 @@ import pika
 from app_utils import base, apa102
 import numpy as np
 import colour
-from business_rules import variables, actions, run_all, fields
 from gpiozero import LED
 
 parser = argparse.ArgumentParser(
@@ -36,29 +35,12 @@ class LedInference(object):
         pass
 
 
-class LedVars(variables.BaseVariables):
-    def __init__(self, inf):
-        self.tracked_inference = inf
-
-    @variables.numeric_rule_variable(label='current confidence')
-    def last_conf1(self):
-        return self.tracked_inference.last_conf1
-
-    @variables.numeric_rule_variable(label='current confidence1')
-    def last_conf2(self):
-        return self.tracked_inference.last_conf2
-
-    @variables.numeric_rule_variable(label='current confidence2')
-    def last_conf3(self):
-        return self.tracked_inference.last_conf3
-
-
-class NotificationActs(base.InferenceActs):
+class LedControl():
 
     def __init__(self,
-                 tracked_inference, 
                  colors, 
-                 led_device):
+                 led_device,
+                 num_leds):
         super().__init__(tracked_inference)
         self.colors = [None] * num_leds
         
@@ -66,12 +48,14 @@ class NotificationActs(base.InferenceActs):
             self.colors[_i] = colour.Color(_c) if _c is not None else None
         self.dev = led_device
         
-        self.paint_strip(led_states)
-    def paint_strip(self):
         
-        for _i,_s in self.tracked_inference.confs:
+    def paint_strip(self,
+                    confidences,
+                    thresholds):
+        
+        for _i,_s in enumerate(confidences):
             _c = self.colors[_i]
-            _t = self.tracked_inference.thresh[_i]
+            _t = thresholds[_i]
             if _s and _c is not None and _t is not None and _s > _t:
                 self.dev.set_pixel(_i,
                                    int(_c.red * 255),
@@ -102,12 +86,16 @@ if __name__ == '__main__':
     colors = [None] * num_leds
     thresholds = [None] * num_leds
     
-    for _i,_c in enumerate(args.colors):
+    for _i,_c in enumerate(args.color):
         colors[_i] = _c
     for _i,_c in enumerate(args.conf):
         thresholds[_i] = _c
         
 
+    led_control = LedControl(colors=colors,
+                             led_device=led_device,
+                             num_leds=num_leds)
+    
     def _callback(ch, method, properties, body):
         confidence = [None] * num_leds
         try:
@@ -116,19 +104,10 @@ if __name__ == '__main__':
                 idx = np.argwhere(np.asarray(d['idxs']) == _idx)
                 if idx.shape[0] >= 1:
                     confidence[_i] = d['inferences'][idx[0, 0]]
+                    
+            led_control.paint_strip(confidences=confidence, 
+                                    thresholds=thresholds)
             
-            inf.time = d['time']
-            inf.confs = confidence
-            inf.thresh = thresholds
-
-            run_all(rule_list=rules,
-                    defined_variables=LedVars(
-                        inf),
-                    defined_actions=NotificationActs(
-                        inf,
-                        colors=colors,
-                        led_device=led_device),
-                    stop_on_first_trigger=False)
 
         except Exception as e:
             print ('exception ', e)
