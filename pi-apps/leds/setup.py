@@ -22,6 +22,6 @@ setup(name='ss_br_apps',
       author='Bryan Staley',
       author_email='bryan.w.staley@gmail.com',
       scripts=[
-               'leds_12.py',],
+               'leds.py',],
       packages=['app_utils']
       )

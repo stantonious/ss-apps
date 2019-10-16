@@ -1,5 +1,5 @@
 #!/home/pi/venvs/ss/bin/python3
-""" Seeed 4hat mic LED app """
+""" Seeed mic LED app """
 __author__ = "Bryan Staley"
 __copyright__ = "Copyright 2019"
 __credits__ = []
@@ -19,7 +19,7 @@ from gpiozero import LED
 parser = argparse.ArgumentParser(
     description='send notification for provided inference')
 
-num_leds=12
+parser.add_argument('--num-leds', type=int, required=True)
 parser.add_argument('--conf',nargs='+', type=float, required=True)
 parser.add_argument('--idx',nargs='+', type=int, required=True)
 parser.add_argument('--color',nargs='+', type=str, required=True)
@@ -28,11 +28,11 @@ led_power=LED(5)
 led_power.on()
 
 class LedInference(object):
-    confs=[0.0] * num_leds
-    thresh=[0.0] * num_leds
+    
 
-    def _init_(self):
-        pass
+    def _init_(self,num_leds):
+        self.confs=[0.0] * num_leds
+        self.thresh=[0.0] * num_leds
 
 
 class LedControl():
@@ -80,11 +80,11 @@ if __name__ == '__main__':
     result = channel.queue_declare(queue='', exclusive=True)
     channel.queue_bind(queue=result.method.queue, exchange='inference')
 
-    inf = LedInference()
+    inf = LedInference(args.num_leds)
 
-    led_device = apa102.APA102(num_led=num_leds)
-    colors = [None] * num_leds
-    thresholds = [None] * num_leds
+    led_device = apa102.APA102(num_led=args.num_leds)
+    colors = [None] * args.num_leds
+    thresholds = [None] * args.num_leds
     
     for _i,_c in enumerate(args.color):
         colors[_i] = _c
@@ -94,10 +94,10 @@ if __name__ == '__main__':
 
     led_control = LedControl(colors=colors,
                              led_device=led_device,
-                             num_leds=num_leds)
+                             num_leds=args.num_leds)
     
     def _callback(ch, method, properties, body):
-        confidence = [None] * num_leds
+        confidence = [None] * args.num_leds
         try:
             d = json.loads(body)
             for _i,_idx in enumerate(args.idx):
