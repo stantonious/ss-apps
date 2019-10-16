@@ -16,7 +16,8 @@ setup(name='ss_br_apps',
           'pika',
           'requests',
           'spidev',
-          'colour'
+          'colour',
+          'gpiozero'
       ],
       description='''br apps.
                  ''',
