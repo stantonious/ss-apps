@@ -35,6 +35,7 @@ sudo cp ss-apps/setup/systemd/*.service /lib/systemd/system/
 sudo cp ss-apps/setup/scripts/*.sh /usr/local/bin
 sudo systemctl daemon-reload
 sudo systemctl enable ss-inf
+sudo systemctl enable ss-led
 #sudo systemctl enable ss-gui
 #sudo systemctl enable ss-audioplayback
 
