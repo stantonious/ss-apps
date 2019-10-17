@@ -67,7 +67,11 @@ sudo curl -XGET -o ${vggish_dir}/vggish_pca_params.npz "https://storage.googleap
 declare -a models=("hio5-nobaby_sigmoid_9_5_64.tflite" \
                    "hio5-nobaby_softmax_9_5_64.tflite" \
                    "hio5-nochild_sigmoid_9_5_64.tflite" \
-                   "hio5-nochild_softmax_9_5_64.tflite" )
+                   "hio5-nochild_softmax_9_5_64.tflite" \
+                   "hio5-nochild-classical_softmax_9_5_96.tflite" \
+                   "hio5-nochild-classical_sigmoid_9_5_96.tflite"  \
+                   "hio5-nobaby-classical_softmax_9_5_96.tflite" \
+                   "hio5-nobaby-classical_sigmoid_9_5_96.tflite")
 for i in "${models[@]}"
 do
 	sudo curl -XGET -o ${ss_dir}/"${i}" "https://www.googleapis.com/storage/v1/b/ss-models/o/${i}?alt=media"

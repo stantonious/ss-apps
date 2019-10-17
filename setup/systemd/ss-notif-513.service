@@ -1,0 +1,13 @@
+[Unit]
+Description=Notification (Noise) Service
+Wants=ss-inf.service
+After=ss-inf.service
+
+[Service]
+User=pi
+Type=simple
+ExecStart=ss-notification.sh 513 .4
+
+[Install]
+WantedBy=multi-user.target
+
