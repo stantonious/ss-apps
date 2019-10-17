@@ -1,0 +1,13 @@
+[Unit]
+Description=LED Service
+Wants=ss-inf.service
+After=ss-inf.service
+
+[Service]
+User=pi
+Type=simple
+ExecStart=ss-led.sh
+
+[Install]
+WantedBy=multi-user.target
+

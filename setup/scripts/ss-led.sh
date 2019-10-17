@@ -1,5 +1,4 @@
 #!/bin/bash
 
 source /home/pi/venvs/ss/bin/activate
-export SS_API_KEY=TODO
-leds.py -s 120 -e 10 -t 2 -i $1 -c $2 -l $3 -C $4 
+leds.py --num-leds 12 --idx 1 2 17 500 288 40 237 513 74 --conf .5 .5 .5 .6 .4 .7 .4 .4 .4 --color blue green yellow red LimeGreen purple white pink green
