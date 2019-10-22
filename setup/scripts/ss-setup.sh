@@ -29,7 +29,13 @@ popd
 
 
 # get setup scripts
-git clone https://github.com/stantonious/ss-apps.git
+if [ ! -d "./ss-apps" ]; then
+    git clone https://github.com/stantonious/ss-apps.git
+else
+    pushd ss-apps
+    git pull
+    popd
+fi
 # systemd setup
 sudo cp ss-apps/setup/systemd/*.service /lib/systemd/system/
 sudo cp ss-apps/setup/scripts/*.sh /usr/local/bin
