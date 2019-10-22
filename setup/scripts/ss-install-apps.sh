@@ -7,7 +7,7 @@ mkdir ${tmp_folder}
 pushd ${tmp_folder}
 
 # get setup scripts
-git clone https://bitbucket.org/stantonious/ss-apps.git
+git clone https://github.com/stantonious/ss-apps.git
 # systemd setup
 
 #TODO - Install from clone above?
@@ -15,5 +15,5 @@ git clone https://bitbucket.org/stantonious/ss-apps.git
 declare -a pkgs=("pi-core" "pi-apps/br" "pi-apps/leds" "pi-apps/inf" "pi-apps/debug" "pi-web/inf_gui" "pi-svc/audio_playback")
 for i in "${pkgs[@]}"
 do
-	pip install --force-reinstall --no-deps git+https://git@bitbucket.org/stantonious/ss-apps.git#subdirectory="${i}"
+	pip install --force-reinstall --no-deps git+https://git@github.com/stantonious/ss-apps.git#subdirectory="${i}"
 done
