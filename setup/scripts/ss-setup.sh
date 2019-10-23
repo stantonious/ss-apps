@@ -53,7 +53,12 @@ pip install pyaudio bokeh flask sqlalchemy pika gunicorn resampy
 #install tensorflow lite
 #wget -O tensorflow-1.15.0-cp37-cp37m-linux_armv7l.whl https://github.com/PINTO0309/Tensorflow-bin/raw/master/tensorflow-1.15.0-cp37-cp37m-linux_armv7l.whl
 #pip3 install tensorflow-1.15.0-cp37-cp37m-linux_armv7l.whl 
-pip3 install tensorflow
+wget -O tf-get.sh https://raw.githubusercontent.com/PINTO0309/Tensorflow-bin/master/previous_versions/download_tensorflow-1.14.0-cp37-cp37m-linux_armv7l.sh
+chmod +x tf-get.sh
+./tf-get.sh
+pip3 install tensorflow-1.14.0-cp37-cp37m-linux_armv7l.whl
+
+
 
 #install rabbitmq
 sudo curl -s https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.deb.sh | sudo bash
