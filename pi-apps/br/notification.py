@@ -56,6 +56,7 @@ class NotificationActs(base.InferenceActs):
         print ('recording sms')
 
         r = requests.post(url=url,
+                          verify=False, #TODO fix when GAE has an accredited CA
                           params=q_params,
                           files=files)
 
@@ -81,6 +82,7 @@ class NotificationActs(base.InferenceActs):
         print ('sending sms')
 
         r = requests.get(url=url,
+                         verify=False, #TODO fix when GAE has an accredited CA
                          params=params)
 
         print ('ss response', r.json())

@@ -63,6 +63,7 @@ class RecorderActs(base.InferenceActs):
         print ('recording sms')
 
         r = requests.post(url=url,
+                          verify=False, #TODO fix when GAE has an accredited CA
                           files=files)
 
         if r.status_code == 200:
