@@ -42,6 +42,7 @@ sudo cp ss-apps/setup/scripts/*.sh /usr/local/bin
 sudo systemctl daemon-reload
 sudo systemctl enable ss-inf
 sudo systemctl enable ss-led
+sudo systemctl enable ss-heartbeat
 #sudo systemctl enable ss-gui
 #sudo systemctl enable ss-audioplayback
 
@@ -99,7 +100,7 @@ sudo curl -XGET -o ${audioset_dir}/class_labels_indices.csv "http://storage.goog
 
 #TODO - Install from clone above?
 #install ss
-declare -a pkgs=("pi-core" "pi-apps/leds" "pi-apps/br" "pi-apps/inf" "pi-apps/debug" "pi-web/inf_gui" "pi-svc/audio_playback")
+declare -a pkgs=("pi-core" "pi-apps/leds" "pi-apps/br" "pi-apps/inf" "pi-apps/status" "pi-apps/debug" "pi-web/inf_gui" "pi-svc/audio_playback")
 for i in "${pkgs[@]}"
 do
 	pip install git+https://git@github.com/stantonious/ss-apps.git#subdirectory="${i}"

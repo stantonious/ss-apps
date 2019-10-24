@@ -12,7 +12,7 @@ git clone https://github.com/stantonious/ss-apps.git
 
 #TODO - Install from clone above?
 #install ss
-declare -a pkgs=("pi-core" "pi-apps/br" "pi-apps/leds" "pi-apps/inf" "pi-apps/debug" "pi-web/inf_gui" "pi-svc/audio_playback")
+declare -a pkgs=("pi-core" "pi-apps/br" "pi-apps/leds" "pi-apps/inf" "pi-apps/status" "pi-apps/debug" "pi-web/inf_gui" "pi-svc/audio_playback")
 for i in "${pkgs[@]}"
 do
 	pip install --force-reinstall --no-deps git+https://git@github.com/stantonious/ss-apps.git#subdirectory="${i}"
