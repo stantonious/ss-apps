@@ -9,6 +9,9 @@ pushd ${tmp_folder}
 # get setup scripts
 git clone https://github.com/stantonious/ss-apps.git
 # systemd setup
+sudo cp ss-apps/setup/systemd/*.service /lib/systemd/system/
+sudo cp ss-apps/setup/scripts/*.sh /usr/local/bin
+sudo systemctl daemon-reload
 
 #TODO - Install from clone above?
 #install ss
