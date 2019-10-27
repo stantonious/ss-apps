@@ -88,7 +88,7 @@ declare -a models=("hio5-nobaby_sigmoid_9_5_64.tflite" \
                    "hio5-nobaby-classical_sigmoid_9_5_96.tflite")
 for i in "${models[@]}"
 do
-	sudo curl -XGET -o ${ss_dir}/"${i}" "https://www.googleapis.com/storage/v1/b/ss-models/o/${i}?alt=media"
+	sudo curl -XGET -o ${ss_dir}/"${i}" "https://www.googleapis.com/storage/v1/b/ss-service-models/o/${i}?alt=media"
 done
 
 if [ -e "${ss_dir}/soundscene.tflite" ]; then
