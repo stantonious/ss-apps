@@ -28,7 +28,7 @@ if __name__ == '__main__':
     def _callback(ch, method, properties, body):
         try:
             d = json.loads(body)
-            infs = list(zip(d['idxs'], d['inferences']))
+            infs = list(zip(d['idxs'], [f'{i:.3f}' for i in d['inferences']]))
             infs.sort(key=lambda x: x[1], reverse=True)
 
             print (f'{d["time"]}\t{infs}')
