@@ -17,5 +17,5 @@ setup(name='ss_status_apps',
       author='Bryan Staley',
       author_email='bryan.w.staley@gmail.com',
       scripts=['heartbeat.py'],
-      packages=['app_utils']
+      packages=[]
       )

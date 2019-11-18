@@ -88,14 +88,14 @@ declare -a models=("hio5-nobaby_sigmoid_9_5_64.tflite" \
                    "hio5-nobaby-classical_sigmoid_9_5_96.tflite")
 for i in "${models[@]}"
 do
-	sudo curl -XGET -o ${ss_dir}/"${i}" "https://www.googleapis.com/storage/v1/b/ss-models/o/${i}?alt=media"
+	sudo curl -XGET -o ${ss_dir}/"${i}" "https://www.googleapis.com/storage/v1/b/ss-service-models/o/${i}?alt=media"
 done
 
 if [ -e "${ss_dir}/soundscene.tflite" ]; then
 	sudo rm  ${ss_dir}/soundscene.tflite
 fi
 sudo ln -s  ${ss_dir}/${models[0]}  ${ss_dir}/soundscene.tflite
-sudo curl -XGET -o ${ss_dir}/vggish.tflite "https://www.googleapis.com/storage/v1/b/ss-models/o/vggish.tflite?alt=media"
+sudo curl -XGET -o ${ss_dir}/vggish.tflite "https://www.googleapis.com/storage/v1/b/ss-service-models/o/vggish.tflite?alt=media"
 sudo curl -XGET -o ${audioset_dir}/class_labels_indices.csv "http://storage.googleapis.com/us_audioset/youtube_corpus/v1/csv/class_labels_indices.csv"
 
 #TODO - Install from clone above?
