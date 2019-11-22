@@ -17,6 +17,6 @@ setup(name='inf_app',
       author='Bryan Staley',
       author_email='bryan.w.staley@gmail.com',
       scripts=['classifier.py',
-               'yamnet_classifer.py'],
+               'yamnet_classifier.py'],
       packages=[],
       )
