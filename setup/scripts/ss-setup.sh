@@ -1,7 +1,7 @@
 #!/bin/bash
 set -x 
 set -e
-
+branch=yamnet
 sudo apt -y update
 
 #install useful utils
@@ -25,18 +25,15 @@ mkdir ~/venvs && pushd ~/venvs
 python3 /usr/lib/python3/dist-packages/virtualenv.py  --system-site-packages -p /usr/bin/python3 ss
 echo 'source ~/venvs/ss/bin/activate' >> ~/.bashrc
 source ~/venvs/ss/bin/activate
-popd
-
 
 # get setup scripts
 if [ ! -d "./ss-apps" ]; then
     git clone https://github.com/stantonious/ss-apps.git
-else
-    pushd ss-apps
-    git pull
-    
-    popd
 fi
+pushd ss-apps
+git pull && git checkout -b ${branch}
+popd
+
 # systemd setup
 sudo cp ss-apps/setup/systemd/*.service /lib/systemd/system/
 sudo cp ss-apps/setup/scripts/*.sh /usr/local/bin
@@ -109,7 +106,7 @@ fi
 declare -a pkgs=("pi-core" "pi-apps/leds" "pi-apps/br" "pi-apps/inf" "pi-apps/status" "pi-apps/debug" "pi-web/inf_gui" "pi-svc/audio_playback")
 for i in "${pkgs[@]}"
 do
-	pip install git+https://git@github.com/stantonious/ss-apps.git@yamnet#subdirectory="${i}"
+	pip install git+https://git@github.com/stantonious/ss-apps.git@${branch}#subdirectory="${i}"
 done
 
 # make ss env
