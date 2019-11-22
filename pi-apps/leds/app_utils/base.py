@@ -13,16 +13,13 @@ import os
 import pika
 import numpy as np
 import datetime
+from yamnet import yamnet as yamnet_model
 from business_rules import variables, actions, run_all, fields
 
 ss_service_base_uri = 'https://services.soundscene.org/'
 
 import csv
-class_mapping = {}
-class_mapping_csv = csv.DictReader(
-    open('/opt/audioset/class_labels_indices.csv'))
-for _n in class_mapping_csv:
-    class_mapping[int(_n['index'])] = _n['display_name']
+class_mapping = yamnet_model.class_names('/opt/soundscene/')
 
 
 class Inference(object):
