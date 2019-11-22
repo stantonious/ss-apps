@@ -34,6 +34,7 @@ if [ ! -d "./ss-apps" ]; then
 else
     pushd ss-apps
     git pull
+    
     popd
 fi
 # systemd setup
