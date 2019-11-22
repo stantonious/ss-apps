@@ -73,7 +73,8 @@ sudo mkdir ${ss_dir}
 sudo mkdir ${vggish_dir}
 sudo mkdir ${audioset_dir}
 
-wget -O ${ss_dir}/yamnet.h5 https://storage.googleapis.com/audioset/yamnet.h5
+#get yamnet model weights
+sudo wget -O ${ss_dir}/yamnet.h5 https://storage.googleapis.com/audioset/yamnet.h5
 
 sudo curl -XGET -o ${vggish_dir}/vggish_pca_params.npz "https://storage.googleapis.com/audioset/vggish_pca_params.npz"
 #wget -O ${vggish_dir}/ https://storage.googleapis.com/audioset/vggish_model.ckpt
