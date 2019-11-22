@@ -20,5 +20,6 @@ setup(name='ss_core',
       packages=[
           'inference',
           'utils',
-          'vggish'],
+          'vggish',
+          'yamnet'],
       )

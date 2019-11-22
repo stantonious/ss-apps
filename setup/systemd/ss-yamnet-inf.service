@@ -1,0 +1,15 @@
+[Unit]
+Description=Audio Inference Service
+After=rabbitmq-server.service
+After=seeed-voicecard.service
+Wants=alsa-utils.service
+Wants=rabbitmq-server.service
+
+[Service]
+User=pi
+Type=simple
+ExecStart=ss-yamnet-inf.sh
+
+[Install]
+WantedBy=multi-user.target
+
