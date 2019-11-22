@@ -1,10 +1,11 @@
 To Setup
 
 ```
-sudo apt install -y git
+branch=yamnet
 cd /tmp
-git clone https://github.com/stantonious/ss-apps.git
-ss-apps/setup/scripts/ss-setup.sh
+wget https://raw.githubusercontent.com/stantonious/ss-apps/${branch}/setup/scripts/ss-setup.sh
+chmod +x ss-setup.sh
+./ss-setup.sh
 ```
 
 To Install apps

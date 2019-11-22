@@ -31,7 +31,7 @@ if [ ! -d "./ss-apps" ]; then
     git clone https://github.com/stantonious/ss-apps.git
 fi
 pushd ss-apps
-git pull && git checkout -b ${branch}
+git checkout -b ${branch} && git pull -f origin ${branch}
 popd
 
 # systemd setup
