@@ -1,7 +1,7 @@
 [Unit]
-Description=Notification (Male) Service
-Wants=ss-inf.service
-After=ss-inf.service
+Description=Notification (Child) Service
+Wants=ss-yamnet-inf.service
+After=ss-yamnet-inf.service
 
 [Service]
 User=pi
