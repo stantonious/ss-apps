@@ -28,7 +28,7 @@ source ~/venvs/ss/bin/activate
 
 # get setup scripts
 if [ ! -d "./ss-apps" ]; then
-    git clone https://github.com/stantonious/ss-apps.git
+    git clone --single-branch --branch ${branch} https://github.com/stantonious/ss-apps.git
 fi
 pushd ss-apps
 git checkout -b ${branch} && git pull -f origin ${branch}
@@ -72,6 +72,8 @@ audioset_dir=/opt/audioset
 sudo mkdir ${ss_dir}
 sudo mkdir ${vggish_dir}
 sudo mkdir ${audioset_dir}
+
+wget -O ${ss_dir}/yamnet.h5 https://storage.googleapis.com/audioset/yamnet.h5
 
 sudo curl -XGET -o ${vggish_dir}/vggish_pca_params.npz "https://storage.googleapis.com/audioset/vggish_pca_params.npz"
 #wget -O ${vggish_dir}/ https://storage.googleapis.com/audioset/vggish_model.ckpt

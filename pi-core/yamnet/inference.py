@@ -22,8 +22,8 @@ import numpy as np
 import resampy
 import soundfile as sf
 
-import params
-import yamnet as yamnet_model
+from . import params
+from . import yamnet as yamnet_model
 
 
 def main(argv):

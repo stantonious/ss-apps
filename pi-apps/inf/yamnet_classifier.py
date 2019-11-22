@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/home/pi/venvs/ss/bin/python3
 """ Classifier App """
 __author__ = "Bryan Staley"
 __copyright__ = "Copyright 2019"
@@ -99,8 +99,9 @@ def audio_control_processor(aud_cmd_snd=None):
 
 
 def infer(frm_rcv):
-    import yamnet as yamnet_model
-    import params
+    logger.info('infering ')
+    from yamnet import yamnet as yamnet_model
+    from yamnet import params
     import json
     
     top_k = 10 #report the top k classes
@@ -111,29 +112,36 @@ def infer(frm_rcv):
                              exchange_type='fanout'
                              )
     
+    logger.info('model ')
     yamnet = yamnet_model.yamnet_frames_model(params)
     yamnet.load_weights('/opt/soundscene/yamnet.h5')
+    logger.info('done model ')
     
-    if frm_rcv.poll(.1):
-        aud_time, normalized_audio_1hz = frm_rcv.recv()
-    
-    if len(normalized_audio_1hz.shape) > 1:
-        normalized_audio_1hz = np.mean(data, axis=1)
+    while True:
+        logger.info ('waiting for data')
+        try:
+            logger.info('got some data')
+            aud_time, normalized_audio_1hz = frm_rcv.recv()
+   
+            if len(normalized_audio_1hz.shape) > 1:
+                normalized_audio_1hz = np.mean(normalized_audio_1hz, axis=1)
 
-    # returns [1,classes] classes=521
-    scores, _ = yamnet.predict(np.reshape(normalized_audio_1hz, [1, -1]), steps=1)
-    
-    for _n in scores:#1 sec samples
-        top_idxs = np.argsort(_n,axis=1)[::-1][:top_k]
-        inferences=scores[top_idxs]
-    
-        channel.basic_publish(exchange='inference',
-                                          routing_key='',
-                                          body=json.dumps(dict(time=batch_times[seq_len - 1],
-                                                               inferences=inferences,
-                                                               embeddings=[],#no embeddings produced for yamnet
-                                                               idxs=top_idxs)))
+            # returns [1,classes] classes=521
+            scores, _ = yamnet.predict(np.reshape(normalized_audio_1hz, [1, -1]), steps=1)
 
+            logger.info('SCORES:%s',scores.shape)
+            for _n in scores:#1 sec samples
+                top_idxs = np.argsort(_n)[::-1][:top_k]
+                inferences=_n[top_idxs]
+
+                channel.basic_publish(exchange='inference',
+                                                  routing_key='',
+                                                  body=json.dumps(dict(time=aud_time,
+                                                                       inferences=inferences.tolist(),
+                                                                       embeddings=[],#no embeddings produced for yamnet
+                                                                       idxs=top_idxs.tolist())))
+        except Exception as e:
+            logger.exception(e)
 
 def monitor_processes():
     aud_p = multiprocessing.Process(
@@ -153,14 +161,18 @@ def monitor_processes():
                                                             ))
 
     rec_p.start()
+    print ('starting frm')
     frm_p = multiprocessing.Process(
         target=framing_processor.frame_audio, args=(aud_rcv,
                                                     frm_snd,
                                                     RATE))
     frm_p.start()
+    print ('started frm')
 
     last_heartbeat = time.time() + 20  # to allow for startup time
     while True:
+        if not frm_p.is_alive():
+            logger.warning("FRAME DIED...Restarting")
         if not aud_p.is_alive():
             logger.warning("AUDIO PROCESS DIED...Restarting")
             aud_p = multiprocessing.Process(
@@ -186,8 +198,10 @@ def monitor_processes():
 
 
 if __name__ == "__main__":
+    logger.error('staring inference')
     inf_thread = Thread(target=infer, args=(frm_rcv,))
     inf_thread.start()
+    logger.error('started inference')
     aud_ctrl_thread = Thread(
         target=audio_control_processor, args=(aud_cmd_snd,))
     aud_ctrl_thread.start()
