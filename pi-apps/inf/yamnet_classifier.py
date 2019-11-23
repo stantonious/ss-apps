@@ -118,9 +118,7 @@ def infer(frm_rcv):
     logger.info('done model ')
     
     while True:
-        logger.info ('waiting for data')
         try:
-            logger.info('got some data')
             aud_time, normalized_audio_1hz = frm_rcv.recv()
    
             if len(normalized_audio_1hz.shape) > 1:
@@ -129,7 +127,6 @@ def infer(frm_rcv):
             # returns [1,classes] classes=521
             scores, _ = yamnet.predict(np.reshape(normalized_audio_1hz, [1, -1]), steps=1)
 
-            logger.info('SCORES:%s',scores.shape)
             for _n in scores:#1 sec samples
                 top_idxs = np.argsort(_n)[::-1][:top_k]
                 inferences=_n[top_idxs]

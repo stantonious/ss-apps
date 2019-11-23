@@ -19,7 +19,7 @@ from business_rules import variables, actions, run_all, fields
 ss_service_base_uri = 'https://services.soundscene.org/'
 
 import csv
-class_mapping = yamnet_model.class_names('/opt/soundscene/')
+class_mapping = yamnet_model.class_names('/opt/soundscene/yamnet_class_map.csv')
 
 
 class Inference(object):
