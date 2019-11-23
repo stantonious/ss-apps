@@ -15,13 +15,15 @@ from app_utils import base, apa102
 import numpy as np
 import colour
 from gpiozero import LED
+from yamnet import yamnet as yamnet_model
+class_mapping = yamnet_model.class_names('/opt/soundscene/yamnet_class_map.csv')
 
 parser = argparse.ArgumentParser(
     description='send notification for provided inference')
 
 parser.add_argument('--num-leds', type=int, required=True)
 parser.add_argument('--conf',nargs='+', type=float, required=True)
-parser.add_argument('--idx',nargs='+', type=int, required=True)
+parser.add_argument('--idx',nargs='+', type=str, required=True)
 parser.add_argument('--color',nargs='+', type=str, required=True)
 
 led_power=LED(5)
@@ -81,6 +83,14 @@ if __name__ == '__main__':
     channel.queue_bind(queue=result.method.queue, exchange='inference')
 
     inf = LedInference(args.num_leds)
+    
+    idxs = []
+    
+    for _i in args.idx:
+        try:
+            idxs.append(int(_i))
+        except:
+            idxs.append(np.where(class_mapping == _i)[0])
 
     led_device = apa102.APA102(num_led=args.num_leds)
     colors = [None] * args.num_leds
@@ -100,7 +110,7 @@ if __name__ == '__main__':
         confidence = [None] * args.num_leds
         try:
             d = json.loads(body)
-            for _i,_idx in enumerate(args.idx):
+            for _i,_idx in enumerate(idxs):
                 idx = np.argwhere(np.asarray(d['idxs']) == _idx)
                 if idx.shape[0] >= 1:
                     confidence[_i] = d['inferences'][idx[0, 0]]
