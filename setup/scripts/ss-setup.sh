@@ -1,7 +1,7 @@
 #!/bin/bash
 set -x 
 set -e
-
+branch=yamnet
 sudo apt -y update
 
 #install useful utils
@@ -27,20 +27,20 @@ echo 'source ~/venvs/ss/bin/activate' >> ~/.bashrc
 source ~/venvs/ss/bin/activate
 popd
 
-
 # get setup scripts
 if [ ! -d "./ss-apps" ]; then
-    git clone https://github.com/stantonious/ss-apps.git
-else
-    pushd ss-apps
-    git pull
-    popd
+    git clone --single-branch --branch ${branch} https://github.com/stantonious/ss-apps.git
 fi
+pushd ss-apps
+git checkout -b ${branch} && git pull -f origin ${branch}
+popd
+
 # systemd setup
 sudo cp ss-apps/setup/systemd/*.service /lib/systemd/system/
 sudo cp ss-apps/setup/scripts/*.sh /usr/local/bin
 sudo systemctl daemon-reload
-sudo systemctl enable ss-inf
+#sudo systemctl enable ss-inf
+sudo systemctl enable ss-yamnet-inf
 sudo systemctl enable ss-led
 sudo systemctl enable ss-heartbeat
 #sudo systemctl enable ss-gui
@@ -74,6 +74,11 @@ sudo mkdir ${ss_dir}
 sudo mkdir ${vggish_dir}
 sudo mkdir ${audioset_dir}
 
+#get yamnet model weights
+sudo wget -O ${ss_dir}/yamnet.h5 https://storage.googleapis.com/audioset/yamnet.h5
+
+sudo cp ss-apps/pi-core/yamnet/yamnet_class_map.csv ${ss_dir}
+
 sudo curl -XGET -o ${vggish_dir}/vggish_pca_params.npz "https://storage.googleapis.com/audioset/vggish_pca_params.npz"
 #wget -O ${vggish_dir}/ https://storage.googleapis.com/audioset/vggish_model.ckpt
 
@@ -86,24 +91,28 @@ declare -a models=("hio5-nobaby_sigmoid_9_5_64.tflite" \
                    "hio5-nochild-classical_sigmoid_9_5_96.tflite"  \
                    "hio5-nobaby-classical_softmax_9_5_96.tflite" \
                    "hio5-nobaby-classical_sigmoid_9_5_96.tflite")
-for i in "${models[@]}"
-do
-	sudo curl -XGET -o ${ss_dir}/"${i}" "https://www.googleapis.com/storage/v1/b/ss-service-models/o/${i}?alt=media"
-done
-
-if [ -e "${ss_dir}/soundscene.tflite" ]; then
-	sudo rm  ${ss_dir}/soundscene.tflite
+                   
+read -p "Would you like to install SS Models? (y/N)" -n 1 -r -s
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+	for i in "${models[@]}"
+	do
+		sudo curl -XGET -o ${ss_dir}/"${i}" "https://www.googleapis.com/storage/v1/b/ss-service-models/o/${i}?alt=media"
+	done
+	
+	
+	if [ -e "${ss_dir}/soundscene.tflite" ]; then
+		sudo rm  ${ss_dir}/soundscene.tflite
+	fi
+	sudo ln -s  ${ss_dir}/${models[0]}  ${ss_dir}/soundscene.tflite
+	sudo curl -XGET -o ${ss_dir}/vggish.tflite "https://www.googleapis.com/storage/v1/b/ss-service-models/o/vggish.tflite?alt=media"
+	sudo curl -XGET -o ${audioset_dir}/class_labels_indices.csv "http://storage.googleapis.com/us_audioset/youtube_corpus/v1/csv/class_labels_indices.csv"
 fi
-sudo ln -s  ${ss_dir}/${models[0]}  ${ss_dir}/soundscene.tflite
-sudo curl -XGET -o ${ss_dir}/vggish.tflite "https://www.googleapis.com/storage/v1/b/ss-service-models/o/vggish.tflite?alt=media"
-sudo curl -XGET -o ${audioset_dir}/class_labels_indices.csv "http://storage.googleapis.com/us_audioset/youtube_corpus/v1/csv/class_labels_indices.csv"
-
 #TODO - Install from clone above?
 #install ss
 declare -a pkgs=("pi-core" "pi-apps/leds" "pi-apps/br" "pi-apps/inf" "pi-apps/status" "pi-apps/debug" "pi-web/inf_gui" "pi-svc/audio_playback")
 for i in "${pkgs[@]}"
 do
-	pip install git+https://git@github.com/stantonious/ss-apps.git#subdirectory="${i}"
+	pip install git+https://git@github.com/stantonious/ss-apps.git@${branch}#subdirectory="${i}"
 done
 
 # make ss env

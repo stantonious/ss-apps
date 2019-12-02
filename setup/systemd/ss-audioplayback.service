@@ -2,8 +2,8 @@
 
 [Unit]
 Description=Audio playback service
-Wants=ss-inf.service
-After=ss-inf.service
+Wants=ss-yamnet-inf.service
+After=ss-yamnet-inf.service
 
 [Service]
 User=pi

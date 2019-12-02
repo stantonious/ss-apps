@@ -167,8 +167,7 @@ if __name__ == '__main__':
             d = json.loads(body)
             idx = np.argwhere(np.asarray(d['idxs']) == args.class_idx)
             if idx.shape[0] < 1:
-                print ('no receiving inference for class idx', args.class_idx)
-                sys.exit()
+                return
 
             conf = d['inferences'][idx[0, 0]]
 
