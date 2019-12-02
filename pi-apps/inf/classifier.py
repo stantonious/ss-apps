@@ -139,8 +139,7 @@ def infer(emb_rcv):
 
             if len(batch_embeddings) >= seq_len:
                 sequential_input = np.expand_dims(
-                    np.asarray(batch_embeddings[:seq_len]), 0)
-                sequential_input = sequential_input.astype(dtype=np.float32)
+                    np.asarray(batch_embeddings[:seq_len],dtype=float32), 0)
                 interpreter.set_tensor(
                     input_details[0]['index'], sequential_input[..., emb_idxs])
                 interpreter.invoke()
