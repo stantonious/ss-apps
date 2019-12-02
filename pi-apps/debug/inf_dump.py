@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/home/pi/venvs/ss/bin/python3
 """ inf dump app """
 __author__ = "Bryan Staley"
 __copyright__ = "Copyright 2019"
@@ -10,6 +10,11 @@ import numpy as np
 import argparse
 import time
 import json
+from yamnet import yamnet as yamnet_model
+
+class_mapping = yamnet_model.class_names('/opt/soundscene/yamnet_class_map.csv')
+
+TOPK_TO_DISPLAY=10
 
 parser = argparse.ArgumentParser(
     description='debug app used to display running inferences')
@@ -28,10 +33,12 @@ if __name__ == '__main__':
     def _callback(ch, method, properties, body):
         try:
             d = json.loads(body)
-            infs = list(zip(d['idxs'], [f'{i:.3f}' for i in d['inferences']]))
+            infs = list(zip(d['idxs'], d['inferences']))
             infs.sort(key=lambda x: x[1], reverse=True)
 
-            print (f'{d["time"]}\t{infs}')
+            infs = [f'{class_mapping[i]}({i}) -> {v} ' for i,v in infs]
+            infs = infs[:TOPK_TO_DISPLAY]
+            print (f'{d["time"]}' + '\n\t' +  '\n\t'.join(infs))
 
         except Exception as e:
             print ('exception ', e)

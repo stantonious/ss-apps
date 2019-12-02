@@ -22,7 +22,8 @@ import datetime
 
 _CLASS_MAPPING = {}
 class_mapping_csv = csv.DictReader(
-    open('/opt/audioset/class_labels_indices.csv'))
+    #open('/opt/audioset/class_labels_indices.csv'))
+    open('/opt/soundscene/yamnet_class_map.csv'))
 class_names = []
 
 for _n in class_mapping_csv:
@@ -171,6 +172,7 @@ def init_datasources(idxs):
     global line_p
 
     for i, _n in enumerate(idxs):
+        print ('initiing',i,_n)
         cname = _CLASS_MAPPING[_n]
         single_ds[_n] = ColumnDataSource(data=dict(pos=[], y=[]))
         duration_ds[_n] = ColumnDataSource(data=dict(time=[], y=[]))
@@ -235,6 +237,17 @@ def poll_temp():
             doc.add_next_tick_callback(partial(temp_update, temp))
 
 
+def _get_d(res,idxs):
+    d = json.loads(res)
+    sorted_idxs = np.argsort(d['idxs'])
+    a=np.stack((d['idxs'],d['inferences']),axis=-1)
+    a=a[sorted_idxs][idxs]
+    idx=a[...,0].astype(np.int)
+    ys=a[...,1]
+    return idx,ys,d['time']
+
+
+idxs_to_process=[0,1,12,35,232,148,132,494]
 def process_inf():
     connection = pika.BlockingConnection(
         pika.ConnectionParameters('localhost'))
@@ -245,14 +258,13 @@ def process_inf():
     channel.queue_bind(queue=result.method.queue, exchange='inference')
 
     def _callback(ch, method, properties, body):
-        try:
-            d = json.loads(body)
-            doc.add_next_tick_callback(partial(update,
-                                               ys=np.asarray(d['inferences']),
-                                               time_step=d['time'],
-                                               idxs=d['idxs'],))
-        except:
-            pass
+        idxs,ys,time=_get_d(body,idxs_to_process)
+        print (idxs)
+        print (ys)
+        doc.add_next_tick_callback(partial(update,
+                                           ys=ys,
+                                           time_step=time,
+                                           idxs=idxs))
     channel.basic_consume(queue=result.method.queue,
                           auto_ack=True,
                           on_message_callback=_callback)
@@ -276,7 +288,8 @@ while r is None:
     time.sleep(.1)
     _, _, r = channel.basic_get(queue=result.method.queue, auto_ack=True)
 
-init_datasources(json.loads(r)['idxs'])
+idxs,ys,_=_get_d(r,idxs_to_process)
+init_datasources(idxs)
 
 channel.queue_delete(queue=result.method.queue)
 
