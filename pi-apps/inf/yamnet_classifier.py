@@ -104,7 +104,7 @@ def infer(frm_rcv):
     from yamnet import params
     import json
     
-    top_k = 10 #report the top k classes
+    top_k = 521 #report the top k classes
     connection = pika.BlockingConnection(
         pika.ConnectionParameters('localhost'))
     channel = connection.channel()

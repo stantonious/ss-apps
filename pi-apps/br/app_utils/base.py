@@ -17,8 +17,10 @@ from yamnet import yamnet as yamnet_model
 
 from business_rules import variables, actions, run_all, fields
 
-ss_service_base_uri = 'https://services.soundscene.org/'
+MODEL_TYPE=os.environ.get('MODEL_TYPE','yamnet')
 
+#HTTPS not supported with GAE wildcard DNS mappings ss_service_base_uri = 'https://yamnet.soundscene.org/'
+ss_service_base_uri = f'https://{MODEL_TYPE}-dot-sound-scene.appspot.com/'
 class_mapping = yamnet_model.class_names('/opt/soundscene/yamnet_class_map.csv')
 
 
