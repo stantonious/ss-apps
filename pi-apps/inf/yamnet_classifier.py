@@ -135,6 +135,7 @@ def infer(frm_rcv):
                                                   routing_key='',
                                                   body=json.dumps(dict(time=aud_time,
                                                                        inferences=inferences.tolist(),
+                                                                       mel=mel.tolist(),
                                                                        embeddings=[],#no embeddings produced for yamnet
                                                                        idxs=top_idxs.tolist())))
         except Exception as e:

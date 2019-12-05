@@ -6,7 +6,7 @@ After=ss-yamnet-inf.service
 [Service]
 User=pi
 Type=simple
-ExecStart=ss-notification.sh 137 .4
+ExecStart=ss-notification.sh 132 .4
 
 [Install]
 WantedBy=multi-user.target
