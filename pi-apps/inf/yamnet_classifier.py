@@ -125,7 +125,7 @@ def infer(frm_rcv):
                 normalized_audio_1hz = np.mean(normalized_audio_1hz, axis=1)
 
             # returns [1,classes] classes=521
-            scores, _ = yamnet.predict(np.reshape(normalized_audio_1hz, [1, -1]), steps=1)
+            scores, mel = yamnet.predict(np.reshape(normalized_audio_1hz, [1, -1]), steps=1)
 
             for _n in scores:#1 sec samples
                 top_idxs = np.argsort(_n)[::-1][:top_k]
