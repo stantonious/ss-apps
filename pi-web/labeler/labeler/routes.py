@@ -83,7 +83,7 @@ def work(**kwargs):
     print ('times',from_dt,to_dt)
     index = _index_data(ss_root=ss_root, 
                         for_idx=class_idx,
-                        max_results=100,
+                        max_results=max_samples,
                         separation=separation,
                         from_dt=from_dt,
                         to_dt=to_dt)
