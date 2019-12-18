@@ -88,7 +88,7 @@ def home(**kwargs):
         return 'No data'
     return render_template('home.html',
                            index=index[index['conf']>confidence][:max_samples],
-                           classes=['a','b','c'],
+                           classes=[f'person-{_i}' for _i in range(5)],
                            time=time.time())
 
 @app.route('/ss/play', methods=['GET'])
