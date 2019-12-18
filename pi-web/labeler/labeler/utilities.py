@@ -29,24 +29,29 @@ def _get_audio_bytes(d,t,secs_prior=5.0,secs_aft=5.0,rate=16000.0,channels=2):
         last_ts = ts
         assert (rate==frate)
     
-        f_start_ut = ts - dur
-        f_end_ut = ts
+        f_start_ut = ts
+        f_end_ut = ts + dur
         
         req_start_ut = t - secs_prior
         req_end_ut = t + secs_aft
         
         if req_end_ut > f_start_ut and req_start_ut <= f_end_ut:
+            print ('time file',_f,t)
             data = np.fromfile(_f,dtype=np.int16).reshape(-1,channels)
             exact_duration = data.shape[0]/rate
-            f_start_ut = ts-exact_duration #get exact file start
+            f_end_ut = ts+exact_duration #get exact file end
             
             rf_start_ut = max([f_start_ut,req_start_ut])
             rf_end_ut = min([f_end_ut,req_end_ut])
             
             d_start_idx = int((rf_start_ut-f_start_ut)*rate)
             d_end_idx=int((rf_end_ut-f_end_ut)*rate)
-            audio_bytes=data[d_start_idx:d_end_idx,:]
+            if d_end_idx !=0:
+                audio_bytes=data[d_start_idx:d_end_idx,:]
+            else:
+                audio_bytes=data[d_start_idx:,:]
             
+            print ('aud shape',audio_bytes.shape,d_start_idx,d_end_idx)
             raw_audio=np.concatenate((raw_audio,audio_bytes))
     return raw_audio
         
@@ -58,6 +63,7 @@ def _get_wav(d,t,duration=10):
     import tempfile
     from subprocess import Popen, PIPE
     
+    print ('duration',duration)
     channels=2
     rate=16000
     raw_audio = _get_audio_bytes(d=d, 

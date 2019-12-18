@@ -20,7 +20,7 @@ def archive_audio(rec_rcv,
                   ):
 
     def _get_audio_archive_f(dir, rate, duration, channels):
-        fname = f'{time.time()}-{duration}-{rate}-{channels}.raw'
+        fname = f'{int(time.time())}-{duration}-{rate}-{channels}.raw'
         now = datetime.datetime.utcnow()
         now_tt = now.timetuple()
         arc_dir = os.path.join(dir, str(now_tt.tm_year), str(now_tt.tm_yday))

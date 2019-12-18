@@ -109,7 +109,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
 fi
 #TODO - Install from clone above?
 #install ss
-declare -a pkgs=("pi-core" "pi-apps/leds" "pi-apps/br" "pi-apps/inf" "pi-apps/status" "pi-apps/debug" "pi-web/inf_gui" "pi-svc/audio_playback")
+declare -a pkgs=("pi-core" "pi-apps/leds" "pi-apps/br" "pi-apps/inf" "pi-apps/status" "pi-apps/debug" "pi-web/inf_gui" "pi-web/labeler" "pi-svc/audio_playback")
 for i in "${pkgs[@]}"
 do
 	pip install --upgrade --no-deps --force-reinstall git+https://git@github.com/stantonious/ss-apps.git@${branch}#subdirectory="${i}"
