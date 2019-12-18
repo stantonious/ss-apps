@@ -27,6 +27,15 @@ echo 'source ~/venvs/ss/bin/activate' >> ~/.bashrc
 source ~/venvs/ss/bin/activate
 popd
 
+
+# make ss env
+sudo mkdir /var/log/ss && sudo chown pi:pi /var/log/ss
+sudo mkdir -p /ss/archive/audio 
+sudo mkdir -p /ss/archive/inference
+sudo mkdir -p /ss/labels
+sudo mkdir -p /ss/data
+sudo chown pi:pi -R /ss
+
 # get setup scripts
 if [ ! -d "./ss-apps" ]; then
     git clone --single-branch --branch ${branch} https://github.com/stantonious/ss-apps.git
@@ -34,6 +43,10 @@ fi
 pushd ss-apps
 git checkout -b ${branch} && git pull -f origin ${branch}
 popd
+
+
+#copy audio files
+sudo cp ss-apps/setup/audio/*.wav /ss/data
 
 # systemd setup
 sudo cp ss-apps/setup/systemd/*.service /lib/systemd/system/
@@ -60,7 +73,6 @@ chmod +x tf-get.sh
 pip3 install tensorflow-1.14.0-cp37-cp37m-linux_armv7l.whl
 
 
-
 #install rabbitmq
 sudo curl -s https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.deb.sh | sudo bash
 sudo apt-get install -y rabbitmq-server
@@ -78,6 +90,7 @@ sudo mkdir ${audioset_dir}
 sudo wget -O ${ss_dir}/yamnet.h5 https://storage.googleapis.com/audioset/yamnet.h5
 
 sudo cp ss-apps/pi-core/yamnet/yamnet_class_map.csv ${ss_dir}
+
 
 sudo curl -XGET -o ${vggish_dir}/vggish_pca_params.npz "https://storage.googleapis.com/audioset/vggish_pca_params.npz"
 #wget -O ${vggish_dir}/ https://storage.googleapis.com/audioset/vggish_model.ckpt
@@ -116,13 +129,7 @@ do
 	pip install --upgrade --no-deps --force-reinstall git+https://git@github.com/stantonious/ss-apps.git@${branch}#subdirectory="${i}"
 done
 
-# make ss env
-sudo mkdir /var/log/ss && sudo chown pi:pi /var/log/ss
-sudo mkdir -p /ss/archive/audio 
-sudo mkdir -p /ss/archive/inference
-sudo mkdir -p /ss/labels
-sudo mkdir -p /ss/data
-sudo chown pi:pi -R /ss
+
 (crontab -l 2>/dev/null; echo "0 0 * * * find /ss/archive -type f -mtime +2 -delete") | crontab -
 
 read -p "Would you like to install RaspiWifi? (y/N)" -n 1 -r -s
