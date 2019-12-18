@@ -13,7 +13,7 @@ import re
 def _get_audio_bytes(d,t,secs_prior=5.0,secs_aft=5.0,rate=16000.0,channels=2):
     raw_audio = np.full((0,channels),0,dtype=np.int16)
     last_ts=-1
-    for _f in glob.glob(f'{d}/*.raw'):
+    for _f in sorted(glob.glob(f'{d}/*.raw')):
         fname = os.path.basename(_f)
         m = re.match(
             r'(?P<timestamp>[^-]+)-(?P<duration>[^-]+)-(?P<rate>[^-]+)-(?P<channels>\d+).*', fname)
