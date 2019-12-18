@@ -68,11 +68,11 @@ def _index_data(ss_root,
         
         
 
-@app.route('/ss/', methods=['GET'])
+@app.route('/ss/labeler', methods=['GET'])
 def home(**kwargs):
     return render_template('home.html',)
       
-@app.route('/ss/label', methods=['GET'])
+@app.route('/ss/labeler/work', methods=['GET'])
 def label(**kwargs):
     max_samples = int(request.args.get('max_samples',10))
     confidence=float(request.args.get('confidence',.3))
@@ -95,7 +95,7 @@ def label(**kwargs):
                            classes=[f'person-{_i}' for _i in range(5)],
                            time=time.time())
 
-@app.route('/ss/play', methods=['GET'])
+@app.route('/ss/labeler/play', methods=['GET'])
 def play(**kwargs):
     aud_time = float(request.args.get('aud_time'))
     duration = float(request.args.get('aud_duration',10))
@@ -113,7 +113,7 @@ def play(**kwargs):
 
     return res
 
-@app.route('/ss/label', methods=['POST'])
+@app.route('/ss/labeler/label', methods=['POST'])
 def label(**kwargs):
     label_pattern = re.compile(r'label-([\d]+).*')
     for _k,_v in request.form.items():
