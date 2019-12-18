@@ -7,10 +7,12 @@ from distutils.core import setup
 
 version = '1.0'
 
-setup(name='inf_gui',
+setup(name='labeler',
       version=version,
-      install_requires=['bokeh',
-                        'pika',
+      install_requires=['gunicorn',
+                        'jinja2',
+                        'flask',
+                        'pandas',
                         'numpy',
                         ],
       description='''ss labeler gui.
