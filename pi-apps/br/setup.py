@@ -25,6 +25,7 @@ setup(name='ss_br_apps',
       author_email='bryan.w.staley@gmail.com',
       scripts=['audio_recorder.py',
                'backoff.py',
+               'play_audio.py',
                'notification.py',
                'embedding_recorder.py'],
       packages=['app_utils']
