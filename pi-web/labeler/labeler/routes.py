@@ -24,12 +24,13 @@ inf_pattern = re.compile(r'([\d]+)-(infs|mel).npy')
 aud_pattern = re.compile(r'([\d]+\.[\d]+)-([\d]+)-([\d]+).raw')
 
 
-def _index_data(ss_root,for_idx=None):
+def _index_data(ss_root,for_idx=None,max_results=100):
     for_idx=for_idx or 0
     
     ds=[]
 
     for _f in glob.glob(ss_inf+'/*-infs.npy'):
+        if len(ds)>=max_results:break
         m=inf_pattern.match(os.path.basename(_f))
         if m is None:
             print ('regex miss!')
@@ -56,7 +57,7 @@ def home(**kwargs):
     max_samples = int(request.args.get('max_samples',10))
     confidence=float(request.args.get('confidence',.3))
     class_idx=int(request.args.get('index',0))
-    index = _index_data(ss_root=ss_root, for_idx=class_idx)
+    index = _index_data(ss_root=ss_root, for_idx=class_idx,max_results=100)
     print (index)
     for _i in index:
         print (_i)
