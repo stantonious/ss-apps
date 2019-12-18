@@ -21,13 +21,13 @@ def archive_audio(rec_rcv,
 
     def _get_audio_archive_f(dir, rate, duration, channels):
         fname = f'{int(time.time())}-{duration}-{rate}-{channels}.raw'
-        now = datetime.datetime.utcnow()
-        now_tt = now.timetuple()
-        arc_dir = os.path.join(dir, str(now_tt.tm_year), str(now_tt.tm_yday))
-        if not os.path.exists(arc_dir):
-            os.makedirs(name=arc_dir)
+        #now = datetime.datetime.utcnow()
+        #now_tt = now.timetuple()
+        #arc_dir = os.path.join(dir, str(now_tt.tm_year), str(now_tt.tm_yday))
+        #if not os.path.exists(arc_dir):
+        #    os.makedirs(name=arc_dir)
 
-        return open(os.path.join(arc_dir, fname), 'wb')
+        return open(os.path.join(dir, fname), 'wb')
 
     frames_written = 0
     frames_per_file = duration * rate

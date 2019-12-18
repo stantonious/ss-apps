@@ -117,7 +117,11 @@ done
 
 # make ss env
 sudo mkdir /var/log/ss && sudo chown pi:pi /var/log/ss
-sudo mkdir /archive && sudo chown pi:pi /archive
+sudo mkdir -p /ss/archive/audio 
+sudo mkdir -p /ss/archive/inference
+sudo mkdir -p /ss/labels
+sudo mkdir -p /ss/data
+sudo chown pi:pi -R /ss
 (crontab -l 2>/dev/null; echo "0 0 * * * find /archive -type f -mtime +2 -delete") | crontab -
 
 read -p "Would you like to install RaspiWifi? (y/N)" -n 1 -r -s

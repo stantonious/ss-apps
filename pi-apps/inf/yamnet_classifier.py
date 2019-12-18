@@ -155,7 +155,7 @@ def monitor_processes():
                                                             RATE,
                                                             CHANNELS,
                                                             AUD_ARCHIVE_SECONDS,
-                                                            '/archive'
+                                                            '/ss/archive/audio'
                                                             ))
 
     rec_p.start()
@@ -188,7 +188,7 @@ def monitor_processes():
                                                                     RATE,
                                                                     CHANNELS,
                                                                     AUD_ARCHIVE_SECONDS,
-                                                                    '/archive'
+                                                                    '/ss/archive/audio'
                                                                     ))
             rec_p.start()
         else:

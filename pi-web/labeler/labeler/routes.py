@@ -13,7 +13,7 @@ from dateutil import parser
 import os,glob,re,shutil
 from . import app, utilities
 
-ss_root='/tmp/ss'
+ss_root='/ss'
 ss_archive=os.path.join(ss_root,'archive')
 ss_audio=os.path.join(ss_archive,'audio')
 ss_inf=os.path.join(ss_archive,'inference')
