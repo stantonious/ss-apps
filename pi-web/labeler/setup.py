@@ -21,5 +21,5 @@ setup(name='labeler',
       author_email='bryan.w.staley@gmail.com',
       scripts=[],
       packages=['labeler'],
-      package_data={'labeler':'templates/*.html'}
+      package_data={'labeler':['templates/*.html']}
       )
