@@ -73,7 +73,7 @@ def home(**kwargs):
     return render_template('home.html',)
       
 @app.route('/ss/labeler/work', methods=['GET'])
-def label(**kwargs):
+def work(**kwargs):
     max_samples = int(request.args.get('max_samples',10))
     confidence=float(request.args.get('confidence',.3))
     separation=float(request.args.get('separation',3))
@@ -92,7 +92,7 @@ def label(**kwargs):
         return 'No data'
     return render_template('label.html',
                            index=index[index['conf']>confidence][:max_samples],
-                           classes=[f'person-{_i}' for _i in range(5)],
+                           classes=['unknown']+[f'person-{_i}' for _i in range(5)],
                            time=time.time())
 
 @app.route('/ss/labeler/play', methods=['GET'])
