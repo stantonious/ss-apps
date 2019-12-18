@@ -122,7 +122,7 @@ sudo mkdir -p /ss/archive/inference
 sudo mkdir -p /ss/labels
 sudo mkdir -p /ss/data
 sudo chown pi:pi -R /ss
-(crontab -l 2>/dev/null; echo "0 0 * * * find /archive -type f -mtime +2 -delete") | crontab -
+(crontab -l 2>/dev/null; echo "0 0 * * * find /ss/archive -type f -mtime +2 -delete") | crontab -
 
 read -p "Would you like to install RaspiWifi? (y/N)" -n 1 -r -s
 if [[ $REPLY =~ ^[Yy]$ ]]; then
