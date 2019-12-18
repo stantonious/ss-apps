@@ -57,7 +57,7 @@ def _index_data(ss_root,
             continue
         
         infs=np.load(_f)
-        d=dict(time=float(m.group(1)),
+        d=dict(time=int(m.group(1)),
                mel_file=mel_fname)
         d['conf']=infs[for_idx]
         ds.append(d)
@@ -67,9 +67,13 @@ def _index_data(ss_root,
     return pd.DataFrame(ds)
         
         
-    
+
 @app.route('/ss/', methods=['GET'])
 def home(**kwargs):
+    return render_template('home.html',)
+      
+@app.route('/ss/label', methods=['GET'])
+def label(**kwargs):
     max_samples = int(request.args.get('max_samples',10))
     confidence=float(request.args.get('confidence',.3))
     separation=float(request.args.get('separation',3))
@@ -86,7 +90,7 @@ def home(**kwargs):
 
     if len(index) == 0:
         return 'No data'
-    return render_template('home.html',
+    return render_template('label.html',
                            index=index[index['conf']>confidence][:max_samples],
                            classes=[f'person-{_i}' for _i in range(5)],
                            time=time.time())
@@ -96,7 +100,7 @@ def play(**kwargs):
     aud_time = float(request.args.get('aud_time'))
     duration = float(request.args.get('aud_duration',10))
     
-    mp3_f = utilities._get_wav(d='/tmp/ss/archive/audio',
+    mp3_f = utilities._get_wav(d=ss_audio,
                                t=aud_time,
                                duration=duration)
     res = make_response(send_file(mp3_f,
@@ -116,14 +120,15 @@ def label(**kwargs):
         m=label_pattern.match(_k)
         if m:
             #find mel/inf
-            src_inf = os.path.join(ss_inf,f'{m.group(1)-infs.npy}')
-            src_mel = os.path.join(ss_inf,f'{m.group(1)-mel.npy}')
+            src_inf = os.path.join(ss_inf,f'{m.group(1)}-infs.npy')
+            src_mel = os.path.join(ss_inf,f'{m.group(1)}-mel.npy')
             
             if os.path.exists(src_inf) and os.path.exists(src_mel):
-                dst_inf = os.path.join(ss_labels,_v,f'{m.group(1)-infs.npy}')
-                dst_mel = os.path.join(ss_labels,_v,f'{m.group(1)-mel.npy}')
+                label_dir=_v.strip()
+                dst_inf = os.path.join(ss_labels,label_dir,f'{m.group(1)}-infs.npy')
+                dst_mel = os.path.join(ss_labels,label_dir,f'{m.group(1)}-mel.npy')
                 
-                label_dir = os.path.basename(dst_inf)
+                label_dir = os.path.dirname(dst_inf)
                 if not os.path.exists(label_dir):
                     print (f'labeled dir:{label_dir} does not exist..creating')
                     os.makedirs(label_dir)

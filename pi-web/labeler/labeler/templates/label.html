@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+
+<body>
+	
+	<form action="/ss/label" method="POST" >
+		<table>
+		<tr>
+			<th>Time</th>
+			<th>Conf</th>
+			<th>Audio</th>
+			<th>Label</th>
+		</tr>
+		{% for idx,row in index.iterrows() %}
+		
+		<tr>
+		
+			<td> {{ row.time }} </td>
+			<td> {{ '{0:0.2f}'.format(row.conf) }} </td>
+			<td>
+				<audio controls preload="auto" autobuffer>
+				<source
+					src="/ss/play?aud_time={{ row.time }}&aud_duration=5.0"
+					type="audio/mpeg">
+				Your browser does not support the audio element.
+				</audio>
+			</td>
+			<td>
+			<select name="label-{{ row.time }}">
+			{% for v in classes %}
+			<option value=" {{ v }} " >{{ v }}</option>
+			{% endfor %}
+			
+			</select>
+			</tr>		
+   		{% endfor %}
+   		
+		</table>
+  
+  	<input type="submit" value="Submit">
+</form>
+</body>
