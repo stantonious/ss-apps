@@ -6,7 +6,7 @@ After=ss-yamnet-inf.service
 [Service]
 User=pi
 Type=simple
-ExecStart=ss-play-audio.sh 396 .2 /ss/data/whistling.wav
+ExecStart=ss-play-audio.sh 35 .9 /ss/data/whistling.wav
 
 [Install]
 WantedBy=multi-user.target

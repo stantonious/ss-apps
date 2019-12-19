@@ -17,6 +17,7 @@ setup(name='ss_br_apps',
           'requests',
           'spidev',
           'colour',
+          'librosa',
           'gpiozero'
       ],
       description='''br apps.

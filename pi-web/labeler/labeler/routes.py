@@ -27,12 +27,15 @@ aud_pattern = re.compile(r'([\d]+\.[\d]+)-([\d]+)-([\d]+).raw')
 
 def _index_data(ss_root,
                 for_idx=None,
+                confidence=None,
                 max_results=100,
                 separation=None,
                 from_dt=None,
                 to_dt=None):
     for_idx=for_idx or 0
+    confidence=confidence or .5
     
+    print ('indexing for idx:',for_idx)
     ds=[]
 
     last_sample_dt=None
@@ -57,7 +60,11 @@ def _index_data(ss_root,
             continue
         
         infs=np.load(_f)
+
+        if infs[for_idx]<confidence:
+            continue
         d=dict(time=int(m.group(1)),
+               dt=dt,
                mel_file=mel_fname)
         d['conf']=infs[for_idx]
         ds.append(d)
@@ -83,6 +90,7 @@ def work(**kwargs):
     print ('times',from_dt,to_dt)
     index = _index_data(ss_root=ss_root, 
                         for_idx=class_idx,
+                        confidence=confidence,
                         max_results=max_samples,
                         separation=separation,
                         from_dt=from_dt,
@@ -93,6 +101,7 @@ def work(**kwargs):
     return render_template('label.html',
                            index=index[index['conf']>confidence][:max_samples],
                            classes=['unknown']+[f'person-{_i}' for _i in range(5)],
+                           span=separation,
                            time=time.time())
 
 @app.route('/ss/labeler/play', methods=['GET'])
@@ -116,24 +125,37 @@ def play(**kwargs):
 @app.route('/ss/labeler/label', methods=['POST'])
 def label(**kwargs):
     label_pattern = re.compile(r'label-([\d]+).*')
+    span=request.form.get('span',0)
+    span=float(span)
+
+    spanned_ts = [int(_v) for _k,_v in request.form.items() if _k == 'span_t']
+   
+
     for _k,_v in request.form.items():
-        m=label_pattern.match(_k)
-        if m:
-            #find mel/inf
-            src_inf = os.path.join(ss_inf,f'{m.group(1)}-infs.npy')
-            src_mel = os.path.join(ss_inf,f'{m.group(1)}-mel.npy')
+        if label_pattern.match(_k):
+            m=label_pattern.match(_k)
+            t=int(m.group(1))
+            ts=range(t-int(span/2),t+int(span/2)+1) if t in spanned_ts else [t]
+
+            for _t in ts:
+                try:
+                    #find mel/inf
+                    src_inf = os.path.join(ss_inf,f'{m.group(1)}-infs.npy')
+                    src_mel = os.path.join(ss_inf,f'{m.group(1)}-mel.npy')
             
-            if os.path.exists(src_inf) and os.path.exists(src_mel):
-                label_dir=_v.strip()
-                dst_inf = os.path.join(ss_labels,label_dir,f'{m.group(1)}-infs.npy')
-                dst_mel = os.path.join(ss_labels,label_dir,f'{m.group(1)}-mel.npy')
-                
-                label_dir = os.path.dirname(dst_inf)
-                if not os.path.exists(label_dir):
-                    print (f'labeled dir:{label_dir} does not exist..creating')
-                    os.makedirs(label_dir)
-                shutil.move(src_inf,dst_inf)
-                shutil.move(src_mel,dst_mel)
+                    if os.path.exists(src_inf) and os.path.exists(src_mel):
+                        label_dir=_v.strip()
+                        dst_inf = os.path.join(ss_labels,label_dir,f'{m.group(1)}-infs.npy')
+                        dst_mel = os.path.join(ss_labels,label_dir,f'{m.group(1)}-mel.npy')
+                    
+                        label_dir = os.path.dirname(dst_inf)
+                        if not os.path.exists(label_dir):
+                            print (f'labeled dir:{label_dir} does not exist..creating')
+                            os.makedirs(label_dir)
+                        shutil.move(src_inf,dst_inf)
+                        shutil.move(src_mel,dst_mel)
+                except Exception as e:
+                    print (e)
         
     return 'ok'
     

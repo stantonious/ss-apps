@@ -11,13 +11,14 @@
 			<th>Time</th>
 			<th>Conf</th>
 			<th>Audio</th>
+			<th>Span</th>
 			<th>Label</th>
 		</tr>
 		{% for idx,row in index.iterrows() %}
 		
 		<tr>
 		
-			<td> {{ row.time }} </td>
+			<td> {{ row.dt }} </td>
 			<td> {{ '{0:0.2f}'.format(row.conf) }} </td>
 			<td>
 				<audio controls preload="auto" autobuffer>
@@ -26,6 +27,9 @@
 					type="audio/mpeg">
 				Your browser does not support the audio element.
 				</audio>
+			</td>
+			<td>
+				<input type="checkbox" name="span_t" value="{{ row.time }}"> 
 			</td>
 			<td>
 			<select name="label-{{ row.time }}">
@@ -39,6 +43,7 @@
    		
 		</table>
   
+		<input type="hidden" name="span" value="{{ span }}">
   	<input type="submit" value="Submit">
 </form>
 </body>
