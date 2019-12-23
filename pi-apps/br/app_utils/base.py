@@ -10,6 +10,8 @@ import time
 import json
 import sys
 import os
+import glob
+import re
 import pika
 import numpy as np
 import datetime
@@ -98,8 +100,6 @@ class InferenceActs(actions.BaseActions):
 
     @staticmethod
     def _get_compressed_archive(t):
-        import re
-        import glob
         import io
         import gzip
         arch_dt = datetime.datetime.fromtimestamp(t)
@@ -153,7 +153,6 @@ class InferenceActs(actions.BaseActions):
             req_end_ut = t + secs_aft
             
             if req_end_ut > f_start_ut and req_start_ut <= f_end_ut:
-                print ('time file',_f,t)
                 data = np.fromfile(_f,dtype=np.int16).reshape(-1,channels)
                 exact_duration = data.shape[0]/rate
                 f_end_ut = ts+exact_duration #get exact file end
@@ -184,12 +183,12 @@ class InferenceActs(actions.BaseActions):
         import tempfile
         from subprocess import Popen, PIPE
         
-        raw_audio = _get_audio_bytes(d=d, 
-                                     t=t, 
-                                     secs_prior=duration/2, 
-                                     secs_aft=duration/2, 
-                                     rate=16000, 
-                                     channels=channels,)
+        raw_audio = InferenceActs._get_audio_bytes(d=d, 
+                                                   t=t, 
+                                                   secs_prior=duration/2, 
+                                                   secs_aft=duration/2, 
+                                                   rate=16000, 
+                                                   channels=channels,)
         #write temp file
         temp_file='/tmp/.ss-audio.raw'
         with open(temp_file,'wb') as fp:
