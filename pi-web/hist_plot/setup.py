@@ -20,6 +20,6 @@ setup(name='hist_plot',
                  ''',
       author='Bryan Staley',
       author_email='bryan.w.staley@gmail.com',
-      scripts=['run_hist_plot.sh'],
+      scripts=[],
       packages=['hist_plot'],
       )
