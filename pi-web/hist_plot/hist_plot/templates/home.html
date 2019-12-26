@@ -10,7 +10,7 @@
 		To: <input type="datetime-local" name="to"><br>
 		
 		 <select name="idxs" multiple>
-		  	{% for key,value in idx_options.iterrows() %}
+		  	{% for key,value in idx_options.items() %}
 		  		<option value="{{ key }}">{{ value }}</option>
 		  	{% endfor %}
 		 </select> 

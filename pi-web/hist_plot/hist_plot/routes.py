@@ -27,14 +27,20 @@ def _load_inf_data(from_dir,from_dt,to_dt,idxs=None):
     infs=np.full((0,521),np.nan)
     times=[]
     for _n in glob.glob(f'{from_dir}/*-infs.npy'):
-        infs = np.load(_n)
-        m=p.match(os.path.basename(_n))
-        f_dt=datetime.fromtimestamp(int(m.group(1)))
         
-        if f_dt >= from_dt and f_dt < to_dt:
-            times.append(f_dt)
-            infs=np.expand_dims(infs,axis=0)
-            res=np.concatenate((res,infs))
+        m=p.match(os.path.basename(_n))
+        f_dt=datetime.datetime.fromtimestamp(int(m.group(1)))
+        if f_dt < from_dt or f_dt >= to_dt:
+            continue
+        
+        try:
+            infs = np.load(_n)
+        except:
+            continue
+        
+        times.append(f_dt)
+        infs=np.expand_dims(infs,axis=0)
+        res=np.concatenate((res,infs))
     return times,infs
 
     
@@ -63,7 +69,7 @@ def generate_plot(**kwargs):
                                 to_dt=to_dt, 
                                 idxs=idxs)
     
-    fig = create_figure(times,infs)
+    fig = _create_figure(times,infs)
     output = io.BytesIO()
     FigureCanvas(fig).print_png(output)
     return Response(output.getvalue(), mimetype='image/png')
