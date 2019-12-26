@@ -22,5 +22,5 @@ setup(name='hist_plot',
       author_email='bryan.w.staley@gmail.com',
       scripts=[],
       packages=['hist_plot'],
-      package_data={'labeler':['templates/*.html']},
+      package_data={'hist_plot':['templates/*.html']},
       )
