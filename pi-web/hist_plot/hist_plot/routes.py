@@ -13,7 +13,7 @@ from dateutil import parser
 import os,glob,re,shutil
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
-from . import app, utilities
+from . import app
         
 cmap=pd.read_csv('/opt/soundscene/yamnet_class_map.csv')
 opts=={_n['index']:_n['display_name'] for _i, _n in d.loc[
