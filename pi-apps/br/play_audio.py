@@ -24,11 +24,23 @@ parser.add_argument('-c', '--confidence-threshold', type=float, required=True)
 parser.add_argument('-i', '--index', type=int, required=True)
 parser.add_argument('-f', '--audio-file', type=str, required=True)
 
+audio_device_names=dict(
+        default='bcm2835 ALSA',
+        usb='USB2.0 Device')
+
 class NotificationActs(base.InferenceActs):
 
     def __init__(self, tracked_inference):
         super().__init__(tracked_inference)
 
+    @staticmethod
+    def _get_audio_device_index(audio,dev_name):
+        for _i in range(audio.get_device_count()):
+            name=audio.get_device_info_by_index(_i)['name']
+            print ('checking',name,dev_name)
+            if dev_name in name:
+                return _i
+        return None
 
     @actions.rule_action(params={'audio_file': fields.FIELD_TEXT})
     def play_audio(self,
@@ -44,21 +56,23 @@ class NotificationActs(base.InferenceActs):
 
         print ('opening')
         try:
-            stream = audio.open(format=pyaudio.paFloat32,#TODOaudio.get_format_from_width(2),
+            stream = audio.open(format=pyaudio.paFloat32,#audio.get_format_from_width(2),
                                 channels=1, #TODO
-                                rate=44000, #TOD)
+                                rate=48000, #TOD)
                                 output=True,
-                                input_device_index=0,)#TODO
+                                output_device_index=NotificationActs._get_audio_device_index(audio,audio_device_names['usb']),)
+            print ('done opening')
         
             d, sr = librosa.load(audio_file,sr=16000)
             #resample
-            d = librosa.resample(d,sr,44000)
+            d = librosa.resample(d,sr,48000)
             cnt=0
 
             while d.size > 0:
                 data=d[:chunk_size]
                 stream.write(data,data.shape[0])
                 d=d[chunk_size:]
+            print ('done playing')
         except Exception as e:
             print('exception',e)
         finally:
