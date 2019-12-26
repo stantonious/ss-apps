@@ -16,7 +16,7 @@ from matplotlib.figure import Figure
 from . import app
         
 cmap=pd.read_csv('/opt/soundscene/yamnet_class_map.csv')
-opts=={_n['index']:_n['display_name'] for _i, _n in d.loc[
+opts={_n['index']:_n['display_name'] for _i, _n in cmap.loc[
     [0,1,2,3]
     ].iterrows()}
 
