@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+
+<body>
+	
+	<form action="/ss/hist_plot/generate_prior_plot" method="GET" >
+		<select name="secs_prior">
+			<option value=600>10 min..</option>
+			<option value="3600">1 hr.</option>
+			<option value="7200">2 hr.</option>
+			<option value="28800">8 hr.</option>
+		</select>
+		
+		 <select name="idxs" multiple>
+		  	{% for key,value in idx_options.items() %}
+		  		<option value="{{ key }}">{{ value }}</option>
+		  	{% endfor %}
+		 </select> 
+		
+  	<input type="submit" value="Submit">
+  	<br>
+</form>
+</body>

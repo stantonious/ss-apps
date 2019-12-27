@@ -21,7 +21,7 @@ opts={_n['index']:_n['display_name'] for _i, _n in cmap.loc[
     ].iterrows()}
 all_idxs={_n['index']:_n['display_name'] for _i, _n in cmap.loc[:].iterrows()}
 
-def _load_inf_data(from_dir,from_dt,to_dt,idxs=None):
+def _load_inf_data(from_dt,to_dt,idxs=None):
     conf_thresh = .1
     if len(idxs) > 0:
         infs=Inference.query.filter(Inference.at >= from_dt).filter(Inference.at < to_dt).filter(Inference.idx.in_(idxs)).order_by(Inference.at).all()
@@ -59,17 +59,45 @@ def home(**kwargs):
     
     return render_template('home.html',
                            idx_options=opts)
-      
+
+@app.route('/ss/hist_plot/date_select', methods=['GET'])
+def date_select(**kwargs):
+    
+    return render_template('date_select.html',
+                           idx_options=opts)
+
+@app.route('/ss/hist_plot/prior_select', methods=['GET'])
+def prior_select(**kwargs):
+    
+    return render_template('prior_select.html',
+                           idx_options=opts)
+    
+@app.route('/ss/hist_plot/generate_prior_plot', methods=['GET'])
+def generate_prior_plot(**kwargs):  
+    idxs=[int(_n) for _n in request.args.getlist('idxs')]
+    prior_secs=int(request.args.get('secs_prior',0))
+    from_dt=parser.parse(request.args.get('from')) if 'from' in request.args else datetime.datetime.utcnow()
+    to_dt=datetime.datetime.utcnow() - datetime.timedelta(seconds=prior_secs)
+    
+    times,infs,idxs = _load_inf_data(from_dt=from_dt, 
+                                     to_dt=to_dt, 
+                                     idxs=idxs)
+    
+    class_names=[all_idxs[_i] for _i in idxs]
+    fig = _create_figure(times,infs,class_names)
+    output = io.BytesIO()
+    FigureCanvas(fig).print_png(output)
+    return Response(output.getvalue(), mimetype='image/png')
+    
 @app.route('/ss/hist_plot/generate_plot', methods=['GET'])
 def generate_plot(**kwargs):
     idxs=[int(_n) for _n in request.args.getlist('idxs')]
     from_dt=parser.parse(request.args.get('from')) if 'from' in request.args else datetime.datetime.utcnow()
     to_dt=parser.parse(request.args.get('to')) if 'to' in request.args else datetime.datetime.utcnow()
     
-    times,infs,idxs = _load_inf_data(from_dir='/ss/archive/inference', 
-                                from_dt=from_dt, 
-                                to_dt=to_dt, 
-                                idxs=idxs)
+    times,infs,idxs = _load_inf_data(from_dt=from_dt, 
+                                     to_dt=to_dt, 
+                                     idxs=idxs)
     
     class_names=[all_idxs[_i] for _i in idxs]
     fig = _create_figure(times,infs,class_names)

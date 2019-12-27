@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+
+<body>
+	
+	<form action="/ss/hist_plot/generate_plot" method="GET" >
+		From: <input type="datetime-local" name="from"><br>
+		To: <input type="datetime-local" name="to"><br>
+		
+		 <select name="idxs" multiple>
+		  	{% for key,value in idx_options.items() %}
+		  		<option value="{{ key }}">{{ value }}</option>
+		  	{% endfor %}
+		 </select> 
+		
+  	<input type="submit" value="Submit">
+  	<br>
+</form>
+</body>
