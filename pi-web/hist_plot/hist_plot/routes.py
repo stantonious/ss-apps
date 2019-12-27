@@ -41,7 +41,7 @@ def _load_inf_data(from_dt,to_dt,idxs=None):
 
     
 def _create_figure(times,infs,inf_names=None):
-    fig = Figure()
+    fig = Figure(figsize=(12, 8))
     axis = fig.add_subplot(1, 1, 1)
     xs = times
     ys = infs
