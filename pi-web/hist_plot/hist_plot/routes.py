@@ -76,8 +76,8 @@ def prior_select(**kwargs):
 def generate_prior_plot(**kwargs):  
     idxs=[int(_n) for _n in request.args.getlist('idxs')]
     prior_secs=int(request.args.get('secs_prior',0))
-    from_dt=parser.parse(request.args.get('from')) if 'from' in request.args else datetime.datetime.utcnow()
-    to_dt=datetime.datetime.utcnow() - datetime.timedelta(seconds=prior_secs)
+    to_dt=datetime.datetime.utcnow()
+    from_dt=datetime.datetime.utcnow() - datetime.timedelta(seconds=prior_secs)
     
     times,infs,idxs = _load_inf_data(from_dt=from_dt, 
                                      to_dt=to_dt, 
