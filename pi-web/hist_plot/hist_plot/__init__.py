@@ -17,9 +17,8 @@ Base = automap_base()
 db_uri = 'postgresql+psycopg2://pi:raspberry@127.0.0.1:5432/ss'
 
 engine = create_engine(db_uri,
-                       pool_size=2,
+                       pool_size=1,
                        echo=False,
-                       isolation_level='READ_COMMITTED',
                        pool_recycle=20,
                        pool_pre_ping=True,
                        echo_pool=True)
