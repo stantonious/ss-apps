@@ -13,7 +13,12 @@ from dateutil import parser
 import os,glob,re,shutil,io
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
-from . import app, Inference
+from . import app, Inference, utilities
+
+ss_root='/ss'
+ss_archive=os.path.join(ss_root,'archive')
+ss_audio=os.path.join(ss_archive,'audio')
+
         
 cmap=pd.read_csv('/opt/soundscene/yamnet_class_map.csv')
 opts={_n['index']:_n['display_name'] for _i, _n in cmap.loc[
