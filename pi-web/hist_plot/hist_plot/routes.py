@@ -17,8 +17,12 @@ from . import app, Inference
         
 cmap=pd.read_csv('/opt/soundscene/yamnet_class_map.csv')
 opts={_n['index']:_n['display_name'] for _i, _n in cmap.loc[
-    [0,1,2,3,36,38,494]
+    #[0,1,2,3,36,38,494]
+    range(521)
     ].iterrows()}
+#sort
+opts={k:v for k,v in sorted(opts.items(), key=lambda x:x[1])}
+
 all_idxs={_n['index']:_n['display_name'] for _i, _n in cmap.loc[:].iterrows()}
 
 def _load_inf_data(from_dt,to_dt,idxs=None):
