@@ -1,0 +1,13 @@
+[Unit]
+Description=Hist Plot Service
+Wants=ss-yamnet-inf.service
+After=ss-yamnet-inf.service
+
+[Service]
+User=pi
+Type=simple
+ExecStart=ss-hist-plot.sh
+
+[Install]
+WantedBy=multi-user.target
+
