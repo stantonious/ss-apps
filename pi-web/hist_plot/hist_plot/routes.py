@@ -117,9 +117,11 @@ def generate_plot(**kwargs):
 
 @app.route('/ss/hist_plot/play', methods=['GET'])
 def play(**kwargs):
-    aud_time = float(request.args.get('aud_time'))
+    dt=parser.parse(request.args.get('aud_time')) if 'aud_time' in request.args else datetime.datetime.utcnow()
+    aud_time=time.mktime(dt.timetuple())
     duration = float(request.args.get('aud_duration',10))
     
+    duration=min([duration,10])
     mp3_f = utilities._get_wav(d=ss_audio,
                                t=aud_time,
                                duration=duration)
