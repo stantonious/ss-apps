@@ -9,3 +9,4 @@ CREATE TABLE inference(
   );
 
  CREATE INDEX ON inference(at);
+ CREATE INDEX ON inference(at,idx);
