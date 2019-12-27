@@ -77,7 +77,7 @@ def prior_select(**kwargs):
                            idx_options=opts)
 
 @app.route('/ss/hist_plot/play_select', methods=['GET'])
-def prior_select(**kwargs):
+def play_select(**kwargs):
     
     return render_template('play_select.html',
                            idx_options=opts)
