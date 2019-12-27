@@ -7,8 +7,7 @@ __license__ = "GPL"
 
 import pika
 import numpy as np
-import argparse
-import time
+import datetime
 import json
 import os
 from sqlalchemy import create_engine
@@ -17,7 +16,7 @@ from sqlalchemy.orm import Session, scoped_session, sessionmaker
 from yamnet import yamnet as yamnet_model
 
 Base = automap_base()
-db_uri = 'postgresql+psycopg2://pi@127.0.0.1:5432/ss'
+db_uri = 'postgresql+psycopg2://pi:raspberry@127.0.0.1:5432/ss'
 
 engine = create_engine(db_uri,
                        pool_size=2,
@@ -68,8 +67,8 @@ if __name__ == '__main__':
             
             for _i,_inf in enumerate(infs):
                 db_infs = Inference(at=datetime.datetime.fromtimestamp(time),
-                                    idx=idxs[_i],
-                                    conf=infs[_i])
+                                    idx=int(idxs[_i]),
+                                    conf=float(infs[_i]))
                 db_session.add(db_infs)
             db_session.commit()
 

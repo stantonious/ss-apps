@@ -13,7 +13,7 @@ from dateutil import parser
 import os,glob,re,shutil,io
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
-from . import app
+from . import app, Inference
         
 cmap=pd.read_csv('/opt/soundscene/yamnet_class_map.csv')
 opts={_n['index']:_n['display_name'] for _i, _n in cmap.loc[
@@ -21,27 +21,18 @@ opts={_n['index']:_n['display_name'] for _i, _n in cmap.loc[
     ].iterrows()}
 
 def _load_inf_data(from_dir,from_dt,to_dt,idxs=None):
-    p = re.compile(r'([\d]+)-(infs)\.npy')
-    idxs=idxs or range(521)
+    
+    
+    infs=Inference.query.filter(Inference.at >= from_dt).filter(Inference.at < to_dt).filter(Inference.idx.in_(idxs)).order_by(Inference.at).all()
 
-    infs=np.full((0,521),np.nan)
-    times=[]
-    print (from_dt,to_dt)
-    for _n in glob.glob(f'{from_dir}/*-infs.npy'):
+    res={}
+    
+    for _n in infs:
+        d=res.setdefault(_n.at,np.zeros(len(idxs)))
+        d[idxs.index(_n.idx)]=_n.conf
+    
+    return list(res.key()),np.asarray(res.values())
         
-        m=p.match(os.path.basename(_n))
-        f_dt=datetime.datetime.fromtimestamp(int(m.group(1)))
-        if f_dt < from_dt or f_dt >= to_dt:
-            continue
-        try:
-            inf = np.load(_n)
-        except:
-            continue
-        
-        times.append(f_dt)
-        inf=np.expand_dims(inf,axis=0)
-        infs=np.concatenate((infs,inf))
-    return times,infs[:,idxs]
 
     
 def _create_figure(times,infs,inf_names=None):

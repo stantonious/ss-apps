@@ -11,6 +11,7 @@ version = '1.0'
 setup(name='inf_app',
       version=version,
       install_requires=['ss_core',
+                        'psycopg2',
                         ],
       description='''ss inference engine.
                  ''',
