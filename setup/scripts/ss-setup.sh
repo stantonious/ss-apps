@@ -45,7 +45,7 @@ popd
 #install postgresql
 if [ ! -d "/etc/postgresql/11" ]; then
     sudo apt-get install -y postgresql-11
-    sudo su -u postgres createuser -s pi
+    sudo -u postgres 'createuser -s pi'
     psql -c 'create database ss' postgres
     psql -f ss-apps/sql/ss_schema.sql ss
     psql -c "ALTER USER pi WITH PASSWORD 'raspberry';"
@@ -101,7 +101,6 @@ sudo curl -XGET -o ${vggish_dir}/vggish_pca_params.npz "https://storage.googleap
 declare -a pkgs=("pi-core" "pi-apps/leds" "pi-apps/br" "pi-apps/inf" "pi-apps/status" "pi-apps/debug" "pi-web/hist_plot" "pi-web/inf_gui" "pi-web/labeler" "pi-svc/audio_playback")
 for i in "${pkgs[@]}"
 do
-	#pip install --upgrade --no-deps --force-reinstall git+https://git@github.com/stantonious/ss-apps.git@${branch}#subdirectory="${i}"
 	pip install --upgrade --no-deps --force-reinstall git+https://git@github.com/stantonious/ss-apps.git@${branch}#subdirectory="${i}"
 done
 
