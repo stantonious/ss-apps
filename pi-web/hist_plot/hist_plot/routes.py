@@ -75,6 +75,12 @@ def prior_select(**kwargs):
     
     return render_template('prior_select.html',
                            idx_options=opts)
+
+@app.route('/ss/hist_plot/play_select', methods=['GET'])
+def prior_select(**kwargs):
+    
+    return render_template('play_select.html',
+                           idx_options=opts)
     
 @app.route('/ss/hist_plot/generate_prior_plot', methods=['GET'])
 def generate_prior_plot(**kwargs):  
@@ -109,6 +115,23 @@ def generate_plot(**kwargs):
     FigureCanvas(fig).print_png(output)
     return Response(output.getvalue(), mimetype='image/png')
 
+@app.route('/ss/hist_plot/play', methods=['GET'])
+def play(**kwargs):
+    aud_time = float(request.args.get('aud_time'))
+    duration = float(request.args.get('aud_duration',10))
+    
+    mp3_f = utilities._get_wav(d=ss_audio,
+                               t=aud_time,
+                               duration=duration)
+    res = make_response(send_file(mp3_f,
+                                  mimetype='audio/mpeg',
+                                  attachment_filename='test-{}.mp3'.format(time.time())))
+    res.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    res.headers["Pragma"] = "no-cache"
+    res.headers["Expires"] = "0"
+    res.headers['Cache-Control'] = 'public, max-age=0'
+
+    return res
 
 
     
