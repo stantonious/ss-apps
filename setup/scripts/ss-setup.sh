@@ -18,17 +18,13 @@ sudo ./install.sh
 popd 
 
 #install system packages
-sudo apt-get install -y openmpi-bin libopenmpi-dev libhdf5-dev portaudio19-dev python-scipy llvm ffmpeg libblas3 liblapack3 liblapack-dev libblas-dev libatlas-base-dev
-
-
+sudo apt-get install -y openmpi-bin libopenmpi-dev libhdf5-dev portaudio19-dev python3-scipy llvm ffmpeg libblas3 liblapack3 liblapack-dev libblas-dev libatlas-base-dev
 
 #install python env
-mkdir ~/venvs && pushd ~/venvs
-python3 /usr/lib/python3/dist-packages/virtualenv.py  --system-site-packages -p /usr/bin/python3 ss
+mkdir ~/venvs
+python3 /usr/lib/python3/dist-packages/virtualenv.py  --system-site-packages -p /usr/bin/python3 ~/venvs/ss
 echo 'source ~/venvs/ss/bin/activate' >> ~/.bashrc
 source ~/venvs/ss/bin/activate
-popd
-
 
 # make ss env
 sudo mkdir /var/log/ss && sudo chown pi:pi /var/log/ss
@@ -47,13 +43,13 @@ git checkout -b ${branch} && git pull -f origin ${branch}
 popd
 
 #install postgresql
-sudo apt-get install -y postgresql-11
-sudo su - postgres
-createuser -s pi
-exit
-psql -c 'create database ss' postgres
-psql -f ss-apps/sql/ss_schema.sql ss
-psql -c "ALTER USER pi WITH PASSWORD 'raspberry';"
+if [ ! -d "/etc/postgresql/11" ]; then
+    sudo apt-get install -y postgresql-11
+    sudo su -u postgres createuser -s pi
+    psql -c 'create database ss' postgres
+    psql -f ss-apps/sql/ss_schema.sql ss
+    psql -c "ALTER USER pi WITH PASSWORD 'raspberry';"
+fi
 
 #copy audio files
 sudo cp ss-apps/setup/audio/*.wav /ss/data
@@ -70,18 +66,14 @@ sudo systemctl enable ss-heartbeat
 #sudo systemctl enable ss-audioplayback
 
 #pip packages
-#failure to install respampy pip install resampy 
-#pip install pyaudio bokeh flask sqlalchemy pika gunicorn resampy==0.1.2
-pip install pyaudio bokeh flask sqlalchemy pika gunicorn resampy
+#TODO - Can any come in as system packages?
+pip install pyaudio bokeh flask sqlalchemy pika gunicorn resampy psycopg2 pandas matplotlib
 
 #install tensorflow lite
-#wget -O tensorflow-1.15.0-cp37-cp37m-linux_armv7l.whl https://github.com/PINTO0309/Tensorflow-bin/raw/master/tensorflow-1.15.0-cp37-cp37m-linux_armv7l.whl
-#pip3 install tensorflow-1.15.0-cp37-cp37m-linux_armv7l.whl 
 wget -O tf-get.sh https://raw.githubusercontent.com/PINTO0309/Tensorflow-bin/master/previous_versions/download_tensorflow-1.14.0-cp37-cp37m-linux_armv7l.sh
 chmod +x tf-get.sh
 ./tf-get.sh
 pip3 install tensorflow-1.14.0-cp37-cp37m-linux_armv7l.whl
-
 
 #install rabbitmq
 sudo curl -s https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.deb.sh | sudo bash
@@ -98,41 +90,15 @@ sudo mkdir ${audioset_dir}
 
 #get yamnet model weights
 sudo wget -O ${ss_dir}/yamnet.h5 https://storage.googleapis.com/audioset/yamnet.h5
-
 sudo cp ss-apps/pi-core/yamnet/yamnet_class_map.csv ${ss_dir}
 
 
 sudo curl -XGET -o ${vggish_dir}/vggish_pca_params.npz "https://storage.googleapis.com/audioset/vggish_pca_params.npz"
 #wget -O ${vggish_dir}/ https://storage.googleapis.com/audioset/vggish_model.ckpt
 
-#get soundsscape models
-declare -a models=("hio5-nobaby_sigmoid_9_5_64.tflite" \
-                   "hio5-nobaby_softmax_9_5_64.tflite" \
-                   "hio5-nochild_sigmoid_9_5_64.tflite" \
-                   "hio5-nochild_softmax_9_5_64.tflite" \
-                   "hio5-nochild-classical_softmax_9_5_96.tflite" \
-                   "hio5-nochild-classical_sigmoid_9_5_96.tflite"  \
-                   "hio5-nobaby-classical_softmax_9_5_96.tflite" \
-                   "hio5-nobaby-classical_sigmoid_9_5_96.tflite")
-                   
-read -p "Would you like to install SS Models? (y/N)" -n 1 -r -s
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-	for i in "${models[@]}"
-	do
-		sudo curl -XGET -o ${ss_dir}/"${i}" "https://www.googleapis.com/storage/v1/b/ss-service-models/o/${i}?alt=media"
-	done
-	
-	
-	if [ -e "${ss_dir}/soundscene.tflite" ]; then
-		sudo rm  ${ss_dir}/soundscene.tflite
-	fi
-	sudo ln -s  ${ss_dir}/${models[0]}  ${ss_dir}/soundscene.tflite
-	sudo curl -XGET -o ${ss_dir}/vggish.tflite "https://www.googleapis.com/storage/v1/b/ss-service-models/o/vggish.tflite?alt=media"
-	sudo curl -XGET -o ${audioset_dir}/class_labels_indices.csv "http://storage.googleapis.com/us_audioset/youtube_corpus/v1/csv/class_labels_indices.csv"
-fi
 #TODO - Install from clone above?
 #install ss
-declare -a pkgs=("pi-core" "pi-apps/leds" "pi-apps/br" "pi-apps/inf" "pi-apps/status" "pi-apps/debug" "pi-web/inf_gui" "pi-web/labeler" "pi-svc/audio_playback")
+declare -a pkgs=("pi-core" "pi-apps/leds" "pi-apps/br" "pi-apps/inf" "pi-apps/status" "pi-apps/debug" "pi-web/hist_plot" "pi-web/inf_gui" "pi-web/labeler" "pi-svc/audio_playback")
 for i in "${pkgs[@]}"
 do
 	#pip install --upgrade --no-deps --force-reinstall git+https://git@github.com/stantonious/ss-apps.git@${branch}#subdirectory="${i}"

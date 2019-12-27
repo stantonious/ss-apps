@@ -36,16 +36,9 @@ Base.query = db_session.query_property()
 
 Inference = Base.classes.inference
 
-parser = argparse.ArgumentParser(
-    description='app used to record mel spectograms')
-
-parser.add_argument('-a', '--archive-dir', default='/tmp', required=True)
-
 topk=5
 
 if __name__ == '__main__':
-    args = parser.parse_args()
-
     connection = pika.BlockingConnection(
         pika.ConnectionParameters('localhost'))
     channel = connection.channel()
