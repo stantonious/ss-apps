@@ -48,7 +48,7 @@ if [ ! -d "/etc/postgresql/11" ]; then
     sudo -u postgres createuser -s pi
     psql -c 'create database ss' postgres
     psql -f ss-apps/sql/ss_schema.sql ss
-    psql -c "ALTER USER pi WITH PASSWORD 'raspberry';"
+    psql -c "ALTER USER pi WITH PASSWORD 'raspberry';" ss
 fi
 
 #copy audio files
