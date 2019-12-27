@@ -8,7 +8,6 @@ import logging
 import sys
 app = Flask(__name__)
 
-from . import routes
 from sqlalchemy import create_engine
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session, scoped_session, sessionmaker
@@ -34,3 +33,6 @@ db_session = scoped_session(sessionmaker(autocommit=False,
 Base.query = db_session.query_property()
 
 Inference = Base.classes.inference
+
+
+from . import routes
