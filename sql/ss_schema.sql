@@ -7,3 +7,5 @@ CREATE TABLE inference(
 	conf FLOAT,
 	PRIMARY KEY (id)
   );
+
+ CREATE INDEX ON inference(at);

@@ -17,7 +17,7 @@ from . import app, Inference
         
 cmap=pd.read_csv('/opt/soundscene/yamnet_class_map.csv')
 opts={_n['index']:_n['display_name'] for _i, _n in cmap.loc[
-    [0,1,2,3,36,38,132]
+    [0,1,2,3,36,38]
     ].iterrows()}
 
 def _load_inf_data(from_dir,from_dt,to_dt,idxs=None):
@@ -29,20 +29,20 @@ def _load_inf_data(from_dir,from_dt,to_dt,idxs=None):
     
     for _n in infs:
         d=res.setdefault(_n.at,np.zeros(len(idxs)))
-        res[_n.at][idxs.index(_n.idx)]=_n.conf
+        d[idxs.index(_n.idx)]=_n.conf
     
-    times=list(res.keys())
-    infs=np.asarray(list(res.values()))
-    return times,infs
+    return list(res.keys()),np.asarray(res.values())
         
 
     
 def _create_figure(times,infs,inf_names=None):
     fig = Figure()
     axis = fig.add_subplot(1, 1, 1)
+    print (infs.shape)
     xs = times
     ys = infs
     for _i,_n in enumerate(ys.T):
+        print (_n.shape)
         if inf_names:
             axis.plot(xs, _n,'o',label=inf_names[_i])
         else:
