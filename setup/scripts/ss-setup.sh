@@ -20,6 +20,8 @@ popd
 #install system packages
 sudo apt-get install -y openmpi-bin libopenmpi-dev libhdf5-dev portaudio19-dev python-scipy llvm ffmpeg libblas3 liblapack3 liblapack-dev libblas-dev libatlas-base-dev
 
+
+
 #install python env
 mkdir ~/venvs && pushd ~/venvs
 python3 /usr/lib/python3/dist-packages/virtualenv.py  --system-site-packages -p /usr/bin/python3 ss
@@ -44,6 +46,13 @@ pushd ss-apps
 git checkout -b ${branch} && git pull -f origin ${branch}
 popd
 
+#install postgresql
+sudo apt-get install -y postgresql-11
+sudo su - postgres
+createuser -s pi
+exit
+psql -c 'create database ss' postgres
+psql -f ss-apps/sql/ss_schema.sql ss
 
 #copy audio files
 sudo cp ss-apps/setup/audio/*.wav /ss/data
