@@ -1,12 +1,12 @@
 [Unit]
-Description=Record MEL spectograms
+Description=Record inference
 Wants=ss-yamnet-inf.service
 After=ss-yamnet-inf.service
 
 [Service]
 User=pi
 Type=simple
-ExecStart=ss-mel-record.sh
+ExecStart=ss-inf-recorder.sh
 
 [Install]
 WantedBy=multi-user.target
