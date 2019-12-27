@@ -53,6 +53,7 @@ createuser -s pi
 exit
 psql -c 'create database ss' postgres
 psql -f ss-apps/sql/ss_schema.sql ss
+psql -c "ALTER USER pi WITH PASSWORD 'raspberry';"
 
 #copy audio files
 sudo cp ss-apps/setup/audio/*.wav /ss/data

@@ -18,6 +18,7 @@ setup(name='inf_app',
       author_email='bryan.w.staley@gmail.com',
       scripts=['classifier.py',
                'yamnet_classifier.py',
+               'inf_recorder.py',
                'mel_recorder.py'],
       packages=[],
       )
