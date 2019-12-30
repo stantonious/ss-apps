@@ -42,8 +42,8 @@ def _load_inf_data(from_dt,to_dt,idxs=None):
     res={}
     
     for _n in infs:
-        #d=res.setdefault(_n.at,np.zeros(len(idxs)))
-        d=res.setdefault(_n.at,np.full((len(idxs)),np.nan))
+        d=res.setdefault(_n.at,np.zeros(len(idxs)))
+        #d=res.setdefault(_n.at,np.full((len(idxs)),np.nan))
         d[idxs.index(_n.idx)]=_n.conf
     
     #To DF
@@ -52,23 +52,21 @@ def _load_inf_data(from_dt,to_dt,idxs=None):
         d.append([_k] + _v.tolist())
     df = pd.DataFrame(d,columns = ['t'] + [_n for _n in idxs])
     df=df.set_index('t')
-    df=df.ix[:, df.max().sort_values(ascending=False).index] #reorder columns min->max
+    df=df.ix[:, df.mean(axis=0).sort_values(ascending=False).index] #reorder columns min->max
     return df
         
 
     
-def _create_figure(times,infs,inf_names=None):
+def _create_figure(times,infs,inf_names=None,stacked=False):
     fig = Figure(figsize=(12, 8))
     axis = fig.add_subplot(1, 1, 1)
     xs = times
     ys = infs
-    for _i,_n in enumerate(ys.T):
-        if inf_names:
-            axis.plot(xs, _n,'o',label=inf_names[_i])
-        else:
-            axis.plot(xs, _n,'o')
-
-    axis.legend()
+    if stacked:
+        axis.stackplot(xs,ys.T)
+    else:
+        axis.plot(xs, ys,'o')
+    axis.legend(labels=inf_names)
     return fig
 
 @app.route('/ss/hist_plot', methods=['GET'])
@@ -101,6 +99,7 @@ def generate_prior_plot(**kwargs):
     max_classes=int(request.args.get('max_classes',10))
     max_samples=int(request.args.get('max_samples',-1))
     prior_secs=int(request.args.get('secs_prior',0))
+    stacked=True if 'stacked' in request.args else False
     to_dt=datetime.datetime.utcnow()
     from_dt=datetime.datetime.utcnow() - datetime.timedelta(seconds=prior_secs)
     
@@ -112,14 +111,17 @@ def generate_prior_plot(**kwargs):
     #reduce to N best
     df = df.iloc[:,:max_classes]
     #reduce to M bins
-    delta_mins = int((df.index[-1]-df.index[0]).total_seconds()/60.0)
-    if max_samples > 0:
-        sample_mins=delta_mins//max_samples
-        df=df.resample(f'{sample_mins}T').mean()
+    delta_secs = int((df.index[-1]-df.index[0]).total_seconds())
+    if max_samples > 0 and delta_secs > 0:
+        sample_secs=delta_secs//max_samples
+        df=df.resample(f'{sample_secs}S').mean()
     idxs=[int(_n) for _n in df.columns]
     times=[_n for _n in df.index] #TODO .to_pydatetime?
     class_names=[all_idxs[_i] for _i in idxs]
-    fig = _create_figure(times,df.to_numpy(),class_names)
+    fig = _create_figure(times,
+                         df.to_numpy(),
+                         class_names,
+                         stacked=stacked)
     output = io.BytesIO()
     FigureCanvas(fig).print_png(output)
     return Response(output.getvalue(), mimetype='image/png')
