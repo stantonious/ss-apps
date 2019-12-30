@@ -39,13 +39,20 @@ def _load_inf_data(from_dt,to_dt,idxs=None):
         idxs=Inference.query.filter(Inference.conf >= conf_thresh).filter(Inference.at >= from_dt).filter(Inference.at < to_dt).distinct(Inference.idx).all()
         idxs=[_n.idx for _n in idxs]
 
+    df = pd.DataFrame(columns = ['t'] + [_n for _n in idxs])
     res={}
     
     for _n in infs:
         d=res.setdefault(_n.at,np.zeros(len(idxs)))
         d[idxs.index(_n.idx)]=_n.conf
     
-    return list(res.keys()),np.asarray(list(res.values())),idxs
+    #To DF
+    for _k,_v in res:
+        dt=dict(t,_k)
+        dd={**dt,**_v} #merge to 1 dict
+        df.append(dd)
+    df=df.set_index('t')
+    return df
         
 
     
@@ -94,12 +101,15 @@ def generate_prior_plot(**kwargs):
     to_dt=datetime.datetime.utcnow()
     from_dt=datetime.datetime.utcnow() - datetime.timedelta(seconds=prior_secs)
     
-    times,infs,idxs = _load_inf_data(from_dt=from_dt, 
-                                     to_dt=to_dt, 
-                                     idxs=idxs)
+    #times,infs,idxs = _load_inf_data(from_dt=from_dt, 
+    df = _load_inf_data(from_dt=from_dt, 
+                        to_dt=to_dt, 
+                        idxs=idxs)
     
+    idxs=[int(_n) for _n in df.columns]
+    times=[_n for _n in df.index] #TODO .to_pydatetime?
     class_names=[all_idxs[_i] for _i in idxs]
-    fig = _create_figure(times,infs,class_names)
+    fig = _create_figure(times,df.to_numpy(),class_names)
     output = io.BytesIO()
     FigureCanvas(fig).print_png(output)
     return Response(output.getvalue(), mimetype='image/png')
