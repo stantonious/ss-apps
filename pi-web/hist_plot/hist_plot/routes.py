@@ -39,19 +39,20 @@ def _load_inf_data(from_dt,to_dt,idxs=None):
         idxs=Inference.query.filter(Inference.conf >= conf_thresh).filter(Inference.at >= from_dt).filter(Inference.at < to_dt).distinct(Inference.idx).all()
         idxs=[_n.idx for _n in idxs]
 
-    df = pd.DataFrame(columns = ['t'] + [_n for _n in idxs])
     res={}
     
     for _n in infs:
-        d=res.setdefault(_n.at,np.zeros(len(idxs)))
+        #d=res.setdefault(_n.at,np.zeros(len(idxs)))
+        d=res.setdefault(_n.at,np.full((len(idxs)),np.nan))
         d[idxs.index(_n.idx)]=_n.conf
     
     #To DF
-    for _k,_v in res:
-        dt=dict(t,_k)
-        dd={**dt,**_v} #merge to 1 dict
-        df.append(dd)
+    d=[]
+    for _k,_v in res.items():
+        d.append([_k] + _v.tolist())
+    df = pd.DataFrame(d,columns = ['t'] + [_n for _n in idxs])
     df=df.set_index('t')
+    df=df.ix[:, df.max().sort_values(ascending=False).index] #reorder columns min->max
     return df
         
 
@@ -97,6 +98,8 @@ def play_select(**kwargs):
 @app.route('/ss/hist_plot/generate_prior_plot', methods=['GET'])
 def generate_prior_plot(**kwargs):  
     idxs=[int(_n) for _n in request.args.getlist('idxs')]
+    max_classes=int(request.args.get('max_classes',10))
+    max_samples=int(request.args.get('max_samples',-1))
     prior_secs=int(request.args.get('secs_prior',0))
     to_dt=datetime.datetime.utcnow()
     from_dt=datetime.datetime.utcnow() - datetime.timedelta(seconds=prior_secs)
@@ -106,6 +109,13 @@ def generate_prior_plot(**kwargs):
                         to_dt=to_dt, 
                         idxs=idxs)
     
+    #reduce to N best
+    df = df.iloc[:,:max_classes]
+    #reduce to M bins
+    delta_mins = int((df.index[-1]-df.index[0]).total_seconds()/60.0)
+    if max_samples > 0:
+        sample_mins=delta_mins//max_samples
+        df=df.resample(f'{sample_mins}T').mean()
     idxs=[int(_n) for _n in df.columns]
     times=[_n for _n in df.index] #TODO .to_pydatetime?
     class_names=[all_idxs[_i] for _i in idxs]
