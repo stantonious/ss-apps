@@ -57,18 +57,16 @@ def _load_inf_data(from_dt,to_dt,idxs=None):
         
 
     
-def _create_figure(times,infs,inf_names=None):
+def _create_figure(times,infs,inf_names=None,stacked=False):
     fig = Figure(figsize=(12, 8))
     axis = fig.add_subplot(1, 1, 1)
     xs = times
     ys = infs
-    for _i,_n in enumerate(ys.T):
-        if inf_names:
-            axis.plot(xs, _n,'o',label=inf_names[_i])
-        else:
-            axis.plot(xs, _n,'o')
-
-    axis.legend()
+    if stacked:
+        axis.stackplot(xs,ys.T)
+    else:
+        axis.plot(xs, ys.T,'o')
+    axis.legend(labels=inf_names)
     return fig
 
 @app.route('/ss/hist_plot', methods=['GET'])
@@ -112,10 +110,10 @@ def generate_prior_plot(**kwargs):
     #reduce to N best
     df = df.iloc[:,:max_classes]
     #reduce to M bins
-    delta_mins = int((df.index[-1]-df.index[0]).total_seconds()/60.0)
-    if max_samples > 0:
-        sample_mins=delta_mins//max_samples
-        df=df.resample(f'{sample_mins}T').mean()
+    delta_secs = int((df.index[-1]-df.index[0]).total_seconds())
+    if max_samples > 0 and delta_secs > 0:
+        sample_secs=delta_secs//max_samples
+        df=df.resample(f'{sample_secs}S').mean()
     idxs=[int(_n) for _n in df.columns]
     times=[_n for _n in df.index] #TODO .to_pydatetime?
     class_names=[all_idxs[_i] for _i in idxs]
