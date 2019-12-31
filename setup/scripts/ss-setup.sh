@@ -61,7 +61,8 @@ sudo systemctl daemon-reload
 #sudo systemctl enable ss-inf
 sudo systemctl enable ss-yamnet-inf
 sudo systemctl enable ss-led
-sudo systemctl enable ss-heartbeat
+sudo systemctl enable ss-inf-recorder
+#sudo systemctl enable ss-heartbeat
 #sudo systemctl enable ss-gui
 #sudo systemctl enable ss-audioplayback
 
