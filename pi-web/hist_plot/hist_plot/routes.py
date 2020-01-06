@@ -113,8 +113,9 @@ def generate_prior_plot(**kwargs):
     #reduce to M bins
     delta_secs = int((df.index[-1]-df.index[0]).total_seconds())
     if max_samples > 0 and delta_secs > 0:
-        sample_secs=delta_secs//max_samples
-        df=df.resample(f'{sample_secs}S').mean()
+        sample_secs=delta_secs/max_samples
+        td = datetime.timedelta(seconds=sample_secs)
+        df=df.resample(td).mean()
     idxs=[int(_n) for _n in df.columns]
     times=[_n for _n in df.index] #TODO .to_pydatetime?
     class_names=[all_idxs[_i] for _i in idxs]

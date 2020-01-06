@@ -29,9 +29,9 @@
 			<option value="28800">8 hr.</option>
 			<option value="86400">1 day.</option>
 		</select><br/>
-		<input type="checkbox" name="stacked" value="stacked"> stacked<br>
-		<input type="text" name="max_classes" value="521"> Max Classes<br>
-		<input type="text" name="max_samples" value="-1"> Samples<br>
+		<input type="checkbox" name="stacked" value="stacked" checked> stacked<br>
+		<input type="text" name="max_classes" value="10"> Max Classes (521)<br>
+		<input type="text" name="max_samples" value="100"> Samples (-1) <br>
 		
 		 <select name="idxs" multiple>
 		  	{% for key,value in idx_options.items() %}
