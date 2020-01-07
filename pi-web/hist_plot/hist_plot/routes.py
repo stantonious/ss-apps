@@ -102,7 +102,7 @@ def prior_plot(**kwargs):
     stacked=True if 'stacked' in request.args else False
     
     return render_template('prior_show.html',
-                           plot_url=f'ss/hist_plot/generate_prior_plot?idxs={idxs}&max_classes={max_classes}&max_samples={max_samples}&secs_prior={secs_prior}',
+                           plot_url=f'/ss/hist_plot/generate_prior_plot?idxs={idxs}&max_classes={max_classes}&max_samples={max_samples}&secs_prior={secs_prior}',
                            aud_url=f'/ss/hist_plot/play?aud_duration=10') 
 @app.route('/ss/hist_plot/generate_prior_plot', methods=['GET'])
 def generate_prior_plot(**kwargs):  
