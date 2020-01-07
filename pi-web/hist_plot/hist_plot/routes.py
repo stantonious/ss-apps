@@ -101,7 +101,7 @@ def prior_plot(**kwargs):
     secs_prior=int(request.args.get('secs_prior',0))
     stacked=True if 'stacked' in request.args else False
     
-    plot_url =f'/ss/hist_plot/generate_prior_plot?max_classes={max_classes}&max_samples={max_samples}&secs_prior={secs_prior}'
+    plot_url =f'/ss/hist_plot/generate_prior_plot?stacked={stacked}&max_classes={max_classes}&max_samples={max_samples}&secs_prior={secs_prior}'
     for _n in idxs:
         plot_url=plot_url+f'&idxs={_n}'
     
