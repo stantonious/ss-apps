@@ -92,7 +92,18 @@ def play_select(**kwargs):
     
     return render_template('play_select.html',
                            idx_options=opts)
+
+@app.route('/ss/hist_plot/prior_plot', methods=['GET'])
+def prior_plot(**kwargs):   
+    idxs=[int(_n) for _n in request.args.getlist('idxs')]
+    max_classes=int(request.args.get('max_classes',10))
+    max_samples=int(request.args.get('max_samples',-1))
+    prior_secs=int(request.args.get('secs_prior',0))
+    stacked=True if 'stacked' in request.args else False
     
+    return render_template('prior_show.html',
+                           plot_url=f'ss/hist_plot/generate_prior_plot?idxs={idxs}&max_classes={max_classes}&max_samples={max_samples}&secs_prior={secs_prior}',
+                           aud_url=f'/ss/hist_plot/play?aud_duration=10') 
 @app.route('/ss/hist_plot/generate_prior_plot', methods=['GET'])
 def generate_prior_plot(**kwargs):  
     idxs=[int(_n) for _n in request.args.getlist('idxs')]

@@ -21,27 +21,10 @@
 
 <body>
 	<center>
-	<form action="/ss/hist_plot/prior_plot" method="GET" >
-		<select name="secs_prior">
-			<option value=600>10 min..</option>
-			<option value="3600">1 hr.</option>
-			<option value="7200">2 hr.</option>
-			<option value="28800">8 hr.</option>
-			<option value="86400">1 day.</option>
-		</select><br/>
-		<input type="checkbox" name="stacked" value="stacked" checked> stacked<br>
-		<input type="text" name="max_classes" value="10"> Max Classes (521)<br>
-		<input type="text" name="max_samples" value="100"> Samples (-1) <br>
-		
-		 <select name="idxs" multiple>
-		  	{% for key,value in idx_options.items() %}
-		  		<option value="{{ key }}">{{ value }}</option>
-		  	{% endfor %}
-		 </select> <br/>
-		
-  	<input type="submit" value="Submit">
-  	<br>
-	</form>
+	<img src="{{ plot_url }} "/><br/>
+	<audio controls>
+  		<source src="{{ aud_url }}" />
+	</audio>
 	</center>
 	
 </body>
