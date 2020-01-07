@@ -98,7 +98,7 @@ def prior_plot(**kwargs):
     idxs=[int(_n) for _n in request.args.getlist('idxs')]
     max_classes=int(request.args.get('max_classes',10))
     max_samples=int(request.args.get('max_samples',-1))
-    prior_secs=int(request.args.get('secs_prior',0))
+    secs_prior=int(request.args.get('secs_prior',0))
     stacked=True if 'stacked' in request.args else False
     
     return render_template('prior_show.html',
