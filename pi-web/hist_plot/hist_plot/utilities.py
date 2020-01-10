@@ -70,6 +70,10 @@ def _get_wav(d,t,duration=10):
                                  secs_aft=duration/2, 
                                  rate=16000, 
                                  channels=channels,)
+    return _to_wav(raw_audio)
+    
+                
+def _to_wav(raw_audio):
     #write temp file
     temp_file='/tmp/.ss-audio.raw'
     with open(temp_file,'wb') as fp:
@@ -84,4 +88,4 @@ def _get_wav(d,t,duration=10):
     wav_f.write(proc.stdout.read())
     wav_f.seek(0)
     return wav_f
-                
+    
