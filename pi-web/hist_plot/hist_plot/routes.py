@@ -14,7 +14,7 @@ import os,glob,re,shutil,io
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
 from . import app, Inference, utilities, db_session
-from sqlalchemy import func
+from sqlalchemy import func,desc
 
 ss_root='/ss'
 ss_archive=os.path.join(ss_root,'archive')
@@ -38,12 +38,13 @@ def _get_significant_idxs(from_dt,to_dt,maximum=None):
     from_dt=datetime.datetime.fromtimestamp(from_dt) if isinstance(from_dt,int) else from_dt
     to_dt=datetime.datetime.fromtimestamp(to_dt) if isinstance(to_dt,int) else to_dt
     
-    q=db_session.query(Inference.idx,func.avg(Inference.conf).label('avg')).filter(Inference.at >= from_dt).filter(Inference.at < to_dt).group_by(Inference.idx).order_by('avg')
+    q=db_session.query(Inference.idx,func.avg(Inference.conf).label('confavg')).filter(Inference.at >= from_dt).filter(Inference.at < to_dt).group_by(Inference.idx).order_by(desc('confavg'))
     
     if maximum:
-        q.limit(maximum)
+        q=q.limit(maximum)
     
-    return [_n.idx for _n in q.all()]
+    d=q.all()
+    return [_n.idx for _n in d]
 
     
 def _get_sample_times(from_dt,to_dt,criteria):
@@ -52,7 +53,6 @@ def _get_sample_times(from_dt,to_dt,criteria):
     to_dt=datetime.datetime.fromtimestamp(to_dt) if isinstance(to_dt,int) else to_dt
     res=[]
     for _n in criteria:
-        print ('setting crit',_n)
         q=Inference.query.filter(Inference.at >= from_dt).filter(Inference.at < to_dt)
         q=q.filter(Inference.idx == _n[0]).filter(Inference.conf>= _n[1])
         
@@ -143,8 +143,12 @@ def date_select(**kwargs):
 @app.route('/ss/hist_plot/prior_select', methods=['GET'])
 def prior_select(**kwargs):
     
+    dt=datetime.datetime.utcnow()
+    idxs=_get_significant_idxs(dt, 
+                               dt-datetime.timedelta(seconds=600),
+                               maximum=10)
     return render_template('prior_select.html',
-                           idx_options=opts)
+                           idx_options=_get_class_map(idxs))
 
 @app.route('/ss/hist_plot/play_select', methods=['GET'])
 def play_select(**kwargs):
@@ -165,7 +169,8 @@ def prior_plot(**kwargs):
     aud_end_t=int(time.mktime(dt.timetuple()))
     aud_start_t=int(aud_end_t-secs_prior)
     
-    idxs=idxs if len(idxs) else _get_significant_idxs(from_t, to_t, maximum=10)
+    #idxs=idxs if len(idxs) else _get_significant_idxs(aud_start_t, aud_end_t, maximum=10)
+    idxs=_get_significant_idxs(aud_start_t, aud_end_t, maximum=10)
     
     plot_url =f'/ss/hist_plot/generate_prior_plot?stacked={stacked}&max_classes={max_classes}&max_samples={max_samples}&secs_prior={secs_prior}'
     for _n in idxs:
@@ -201,7 +206,6 @@ def generate_prior_plot(**kwargs):
         td = datetime.timedelta(seconds=sample_secs)
         df=df.resample(td).mean()
     idxs=[int(_n) for _n in df.columns]
-    session['idxs']=idxs
     times=[_n for _n in df.index] #TODO .to_pydatetime?
     class_names=[all_idxs[_i] for _i in idxs]
     fig = _create_figure(times,
