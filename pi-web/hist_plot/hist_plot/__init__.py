@@ -8,6 +8,8 @@ import logging
 import sys
 app = Flask(__name__)
 
+app.secret_key = 'super secret key'
+
 from sqlalchemy import create_engine
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session, scoped_session, sessionmaker

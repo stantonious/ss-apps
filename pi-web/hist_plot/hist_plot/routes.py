@@ -13,7 +13,8 @@ from dateutil import parser
 import os,glob,re,shutil,io
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
-from . import app, Inference, utilities
+from . import app, Inference, utilities, db_session
+from sqlalchemy import func
 
 ss_root='/ss'
 ss_archive=os.path.join(ss_root,'archive')
@@ -33,6 +34,18 @@ all_idxs={_n['index']:_n['display_name'] for _i, _n in cmap.loc[:].iterrows()}
 def _get_class_map(idxs):
     return {_n['index']:_n['display_name'] for _i, _n in cmap.loc[idxs].iterrows()}
 
+def _get_significant_idxs(from_dt,to_dt,maximum=None):
+    from_dt=datetime.datetime.fromtimestamp(from_dt) if isinstance(from_dt,int) else from_dt
+    to_dt=datetime.datetime.fromtimestamp(to_dt) if isinstance(to_dt,int) else to_dt
+    
+    q=db_session.query(Inference.idx,func.avg(Inference.conf).label('avg')).filter(Inference.at >= from_dt).filter(Inference.at < to_dt).group_by(Inference.idx).order_by('avg')
+    
+    if maximum:
+        q.limit(maximum)
+    
+    return [_n.idx for _n in q.all()]
+
+    
 def _get_sample_times(from_dt,to_dt,criteria):
     
     from_dt=datetime.datetime.fromtimestamp(from_dt) if isinstance(from_dt,int) else from_dt
@@ -239,7 +252,7 @@ def play_threshold(**kwargs):
     from_t=int(request.args.get('from_t'))
     to_t=int(request.args.get('to_t'))
     idxs=[int(_n) for _n in request.args.getlist('idxs')]
-    idxs=idxs if len(idxs) else session['idxs']
+    idxs=idxs if len(idxs) else _get_significant_idxs(from_t, to_t, maximum=10)
     idx_threshold=float(request.args.get('idx_thresh',0.0))
 
     raw_audio=_get_audio_spans(from_t=from_t, 
