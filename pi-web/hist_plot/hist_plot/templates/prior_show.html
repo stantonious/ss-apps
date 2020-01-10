@@ -18,15 +18,13 @@
 	integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd"
 	crossorigin="anonymous"></script>
 </head>
-<body>
-	
-	<center>
-		<form action="/ss/hist_plot/play" method="GET" >
-		time: <input type="datetime-local" name="aud_time"><br>
-		Duration(secs): <input type="text" name="aud_duration" value="10"><br>
-		
-  		<input type="submit" value="Submit"><br>
-		</form>
-	</center>
 
+<body>
+	<center>
+	<img src="{{ plot_url }} "/><br/>
+	<audio controls>
+  		<source src="{{ aud_url }}" />
+	</audio>
+	</center>
+	
 </body>

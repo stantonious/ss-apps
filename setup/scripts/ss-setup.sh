@@ -1,7 +1,7 @@
 #!/bin/bash
 set -x 
 set -e
-branch=yamnet
+branch=master
 sudo apt -y update
 
 #install useful utils
