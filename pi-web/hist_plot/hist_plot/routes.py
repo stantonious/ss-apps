@@ -4,7 +4,7 @@ __copyright__ = "Copyright 2019"
 __credits__ = []
 __license__ = "GPL"
 
-from flask import make_response, request, render_template, send_file,Response, session
+from flask import make_response, request, render_template, send_file,Response
 import time
 import numpy as np
 import pandas as pd
@@ -165,6 +165,8 @@ def prior_plot(**kwargs):
     aud_end_t=int(time.mktime(dt.timetuple()))
     aud_start_t=int(aud_end_t-secs_prior)
     
+    idxs=idxs if len(idxs) else _get_significant_idxs(from_t, to_t, maximum=10)
+    
     plot_url =f'/ss/hist_plot/generate_prior_plot?stacked={stacked}&max_classes={max_classes}&max_samples={max_samples}&secs_prior={secs_prior}'
     for _n in idxs:
         plot_url=plot_url+f'&idxs={_n}'
@@ -252,7 +254,6 @@ def play_threshold(**kwargs):
     from_t=int(request.args.get('from_t'))
     to_t=int(request.args.get('to_t'))
     idxs=[int(_n) for _n in request.args.getlist('idxs')]
-    idxs=idxs if len(idxs) else _get_significant_idxs(from_t, to_t, maximum=10)
     idx_threshold=float(request.args.get('idx_thresh',0.0))
 
     raw_audio=_get_audio_spans(from_t=from_t, 
