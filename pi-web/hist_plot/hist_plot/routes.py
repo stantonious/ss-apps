@@ -144,8 +144,8 @@ def date_select(**kwargs):
 def prior_select(**kwargs):
     
     dt=datetime.datetime.utcnow()
-    idxs=_get_significant_idxs(dt, 
-                               dt-datetime.timedelta(seconds=600),
+    idxs=_get_significant_idxs(dt-datetime.timedelta(seconds=600),
+                               dt, 
                                maximum=10)
     return render_template('prior_select.html',
                            idx_options=_get_class_map(idxs))
