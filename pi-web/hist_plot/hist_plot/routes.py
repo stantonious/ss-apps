@@ -4,7 +4,7 @@ __copyright__ = "Copyright 2019"
 __credits__ = []
 __license__ = "GPL"
 
-from flask import make_response, request, render_template, send_file,Response
+from flask import make_response, request, render_template, send_file,Response, session
 import time
 import numpy as np
 import pandas as pd
@@ -49,10 +49,12 @@ def _get_sample_times(from_dt,to_dt,criteria):
     return res
 
 def _get_audio_spans(from_t,to_t,criteria,span):
-    print ('criteria',criteria)
     res = _get_sample_times(from_t,to_t,criteria)
     res = sorted([(_n-span//2,_n+span//2) for _n in res])
+    raw_audio = np.full((0,2),0,dtype=np.int16)
     
+    if len(res) == 0:
+        return raw_audio
     simplified=[res[0]]
     
     for _n in res[1:]:
@@ -63,12 +65,6 @@ def _get_audio_spans(from_t,to_t,criteria,span):
             simplified.append(_n)
     
     for _n in simplified:
-        print ('simple',_n[1]-_n[0],_n[0])
-        
-    raw_audio = np.full((0,2),0,dtype=np.int16)
-    
-    for _n in simplified:
-        print ('n',_n)
         mid=(_n[0]+_n[1])//2
         half_width=mid-_n[0]
         audio_bytes=utilities._get_audio_bytes(d=ss_audio,
@@ -156,17 +152,16 @@ def prior_plot(**kwargs):
     aud_end_t=int(time.mktime(dt.timetuple()))
     aud_start_t=int(aud_end_t-secs_prior)
     
-    aud_url=f'/ss/hist_plot/play?aud_duration=10' if idx_thresh<=0 else f'/ss/hist_plot/play_threshold?idx_thresh={idx_thresh}&from_t={aud_start_t}&to_t={aud_end_t}'
     plot_url =f'/ss/hist_plot/generate_prior_plot?stacked={stacked}&max_classes={max_classes}&max_samples={max_samples}&secs_prior={secs_prior}'
     for _n in idxs:
         plot_url=plot_url+f'&idxs={_n}'
-        aud_url=aud_url+f'&idxs={_n}'
     
     return render_template('prior_show.html',
                            from_t=aud_start_t,
                            to_t=aud_end_t,
                            idx_options=_get_class_map(idxs),
                            plot_url=plot_url) 
+    
 @app.route('/ss/hist_plot/generate_prior_plot', methods=['GET'])
 def generate_prior_plot(**kwargs):  
     idxs=[int(_n) for _n in request.args.getlist('idxs')]
@@ -191,6 +186,7 @@ def generate_prior_plot(**kwargs):
         td = datetime.timedelta(seconds=sample_secs)
         df=df.resample(td).mean()
     idxs=[int(_n) for _n in df.columns]
+    session['idxs']=idxs
     times=[_n for _n in df.index] #TODO .to_pydatetime?
     class_names=[all_idxs[_i] for _i in idxs]
     fig = _create_figure(times,
@@ -243,6 +239,7 @@ def play_threshold(**kwargs):
     from_t=int(request.args.get('from_t'))
     to_t=int(request.args.get('to_t'))
     idxs=[int(_n) for _n in request.args.getlist('idxs')]
+    idxs=idxs if len(idxs) else session['idxs']
     idx_threshold=float(request.args.get('idx_thresh',0.0))
 
     raw_audio=_get_audio_spans(from_t=from_t, 
