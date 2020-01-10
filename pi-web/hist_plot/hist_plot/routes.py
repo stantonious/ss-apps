@@ -30,6 +30,53 @@ opts={k:v for k,v in sorted(opts.items(), key=lambda x:x[1])}
 
 all_idxs={_n['index']:_n['display_name'] for _i, _n in cmap.loc[:].iterrows()}
 
+def _get_sample_times(from_dt,to_dt,criteria):
+    
+    from_dt=datetime.datetime.fromtimestamp(from_dt) if isinstance(from_dt,int) else from_dt
+    to_dt=datetime.datetime.fromtimestamp(to_dt) if isinstance(to_dt,int) else to_dt
+    res=[]
+    for _n in criteria:
+        print ('setting crit',_n)
+        q=Inference.query.filter(Inference.at >= from_dt).filter(Inference.at < to_dt)
+        q=q.filter(Inference.idx == _n[0]).filter(Inference.conf>= _n[1])
+        
+        for _n in q.all():
+            t=time.mktime(_n.at.timetuple())
+            res.append(t)
+    return res
+
+def _get_audio_spans(from_t,to_t,criteria,span):
+    print ('criteria',criteria)
+    res = _get_sample_times(from_t,to_t,criteria)
+    res = sorted([(_n-span//2,_n+span//2) for _n in res])
+    
+    simplified=[res[0]]
+    
+    for _n in res[1:]:
+        if _n[0] < simplified[-1][1]:
+            if _n[1] > simplified[-1][1]:
+                simplified[-1]=(simplified[-1][0],_n[1])
+        else:
+            simplified.append(_n)
+    
+    for _n in simplified:
+        print ('simple',_n[1]-_n[0],_n[0])
+        
+    raw_audio = np.full((0,2),0,dtype=np.int16)
+    
+    for _n in simplified:
+        print ('n',_n)
+        mid=(_n[0]+_n[1])//2
+        half_width=mid-_n[0]
+        audio_bytes=utilities._get_audio_bytes(d=ss_audio,
+                                               t=mid,
+                                               secs_prior=half_width,
+                                               secs_aft=half_width,)
+        raw_audio=np.concatenate((raw_audio,audio_bytes))
+        
+    return raw_audio
+    
+    
 def _load_inf_data(from_dt,to_dt,idxs=None):
     conf_thresh = .1
     if len(idxs) > 0:
@@ -92,7 +139,29 @@ def play_select(**kwargs):
     
     return render_template('play_select.html',
                            idx_options=opts)
+
+@app.route('/ss/hist_plot/prior_plot', methods=['GET'])
+def prior_plot(**kwargs):   
+    idxs=[int(_n) for _n in request.args.getlist('idxs')]
+    max_classes=int(request.args.get('max_classes',10))
+    max_samples=int(request.args.get('max_samples',-1))
+    secs_prior=int(request.args.get('secs_prior',0))
+    idx_thresh=float(request.args.get('idx_thresh',0))
+    stacked=True if 'stacked' in request.args else False
     
+    dt=datetime.datetime.utcnow()
+    aud_end_t=int(time.mktime(dt.timetuple()))
+    aud_start_t=int(aud_end_t-secs_prior)
+    
+    aud_url=f'/ss/hist_plot/play?aud_duration=10' if idx_thresh<=0 else f'/ss/hist_plot/play_threshold?idx_thresh={idx_thresh}&from_t={aud_start_t}&to_t={aud_end_t}'
+    plot_url =f'/ss/hist_plot/generate_prior_plot?stacked={stacked}&max_classes={max_classes}&max_samples={max_samples}&secs_prior={secs_prior}'
+    for _n in idxs:
+        plot_url=plot_url+f'&idxs={_n}'
+        aud_url=aud_url+f'&idxs={_n}'
+    
+    return render_template('prior_show.html',
+                           plot_url=plot_url,
+                           aud_url=aud_url) 
 @app.route('/ss/hist_plot/generate_prior_plot', methods=['GET'])
 def generate_prior_plot(**kwargs):  
     idxs=[int(_n) for _n in request.args.getlist('idxs')]
@@ -113,8 +182,9 @@ def generate_prior_plot(**kwargs):
     #reduce to M bins
     delta_secs = int((df.index[-1]-df.index[0]).total_seconds())
     if max_samples > 0 and delta_secs > 0:
-        sample_secs=delta_secs//max_samples
-        df=df.resample(f'{sample_secs}S').mean()
+        sample_secs=delta_secs/max_samples
+        td = datetime.timedelta(seconds=sample_secs)
+        df=df.resample(td).mean()
     idxs=[int(_n) for _n in df.columns]
     times=[_n for _n in df.index] #TODO .to_pydatetime?
     class_names=[all_idxs[_i] for _i in idxs]
@@ -152,6 +222,31 @@ def play(**kwargs):
     mp3_f = utilities._get_wav(d=ss_audio,
                                t=aud_time,
                                duration=duration)
+    res = make_response(send_file(mp3_f,
+                                  mimetype='audio/mpeg',
+                                  attachment_filename='test-{}.mp3'.format(time.time())))
+    res.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    res.headers["Pragma"] = "no-cache"
+    res.headers["Expires"] = "0"
+    res.headers['Cache-Control'] = 'public, max-age=0'
+
+    return res
+
+@app.route('/ss/hist_plot/play_threshold', methods=['GET'])
+def play_threshold(**kwargs):
+    max_aud_len=16000*120 #120 secs of audio
+    from_t=int(request.args.get('from_t'))
+    to_t=int(request.args.get('to_t'))
+    idxs=[int(_n) for _n in request.args.getlist('idxs')]
+    idx_threshold=float(request.args.get('idx_thresh',0.0))
+
+    raw_audio=_get_audio_spans(from_t=from_t, 
+                               to_t=to_t, 
+                               criteria=[(_n,idx_threshold) for _n in idxs], 
+                               span=2) #TODO 
+    
+    raw_audio=raw_audio[-max_aud_len:,...]
+    mp3_f = utilities._to_wav(raw_audio,rate=16000,channels=2)
     res = make_response(send_file(mp3_f,
                                   mimetype='audio/mpeg',
                                   attachment_filename='test-{}.mp3'.format(time.time())))

@@ -7,7 +7,7 @@ Created on Dec 17, 2019
 import time,datetime
 import numpy as np
 import glob
-import os
+import os,io
 import re
 
 def _get_audio_bytes(d,t,secs_prior=5.0,secs_aft=5.0,rate=16000.0,channels=2):
@@ -57,10 +57,6 @@ def _get_audio_bytes(d,t,secs_prior=5.0,secs_aft=5.0,rate=16000.0,channels=2):
 def _get_wav(d,t,duration=10):
     import re
     import glob
-    import io
-    import gzip
-    import tempfile
-    from subprocess import Popen, PIPE
     
     channels=2
     rate=16000
@@ -68,8 +64,14 @@ def _get_wav(d,t,duration=10):
                                  t=t, 
                                  secs_prior=duration/2, 
                                  secs_aft=duration/2, 
-                                 rate=16000, 
+                                 rate=rate, 
                                  channels=channels,)
+    return _to_wav(raw_audio,rate,channels)
+    
+                
+def _to_wav(raw_audio,rate,channels):
+    import io
+    from subprocess import Popen, PIPE
     #write temp file
     temp_file='/tmp/.ss-audio.raw'
     with open(temp_file,'wb') as fp:
@@ -84,4 +86,4 @@ def _get_wav(d,t,duration=10):
     wav_f.write(proc.stdout.read())
     wav_f.seek(0)
     return wav_f
-                
+    
