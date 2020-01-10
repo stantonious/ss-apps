@@ -30,6 +30,9 @@ opts={k:v for k,v in sorted(opts.items(), key=lambda x:x[1])}
 
 all_idxs={_n['index']:_n['display_name'] for _i, _n in cmap.loc[:].iterrows()}
 
+def _get_class_map(idxs):
+    return {_n['index']:_n['display_name'] for _i, _n in cmap.loc[idxs].iterrows()}
+
 def _get_sample_times(from_dt,to_dt,criteria):
     
     from_dt=datetime.datetime.fromtimestamp(from_dt) if isinstance(from_dt,int) else from_dt
@@ -160,8 +163,10 @@ def prior_plot(**kwargs):
         aud_url=aud_url+f'&idxs={_n}'
     
     return render_template('prior_show.html',
-                           plot_url=plot_url,
-                           aud_url=aud_url) 
+                           from_t=aud_start_t,
+                           to_t=aud_end_t,
+                           idx_options=_get_class_map(idxs),
+                           plot_url=plot_url) 
 @app.route('/ss/hist_plot/generate_prior_plot', methods=['GET'])
 def generate_prior_plot(**kwargs):  
     idxs=[int(_n) for _n in request.args.getlist('idxs')]
