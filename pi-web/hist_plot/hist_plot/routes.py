@@ -171,7 +171,7 @@ def prior_plot(**kwargs):
     dt=datetime.datetime.utcnow()
     aud_end_t=int(time.mktime(dt.timetuple()))
     aud_start_t=int(aud_end_t-secs_prior)
-    exclude_idxs=[494] if 'filter_silience' in request.args else None
+    exclude_idxs=[494] if 'filter_silence' in request.args else None
     idxs=idxs or _get_significant_idxs(aud_start_t, aud_end_t, maximum=max_classes, exclude_idxs=exclude_idxs)
     
     plot_url =f'/ss/hist_plot/generate_prior_plot?stacked={stacked}&max_classes={max_classes}&max_samples={max_samples}&secs_prior={secs_prior}'
