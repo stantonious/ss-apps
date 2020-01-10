@@ -34,12 +34,15 @@ all_idxs={_n['index']:_n['display_name'] for _i, _n in cmap.loc[:].iterrows()}
 def _get_class_map(idxs):
     return {_n['index']:_n['display_name'] for _i, _n in cmap.loc[idxs].iterrows()}
 
-def _get_significant_idxs(from_dt,to_dt,maximum=None):
+def _get_significant_idxs(from_dt,to_dt,maximum=None,exclude_idxs=None):
     from_dt=datetime.datetime.fromtimestamp(from_dt) if isinstance(from_dt,int) else from_dt
     to_dt=datetime.datetime.fromtimestamp(to_dt) if isinstance(to_dt,int) else to_dt
     
     q=db_session.query(Inference.idx,func.avg(Inference.conf).label('confavg')).filter(Inference.at >= from_dt).filter(Inference.at < to_dt).group_by(Inference.idx).order_by(desc('confavg'))
     
+    if exclude_idxs:
+        q=q.filter(~Inference.idx.in_(exclude_idxs))
+    q=q.group_by(Inference.idx).order_by(desc('confavg'))
     if maximum:
         q=q.limit(maximum)
     
@@ -168,13 +171,13 @@ def prior_plot(**kwargs):
     dt=datetime.datetime.utcnow()
     aud_end_t=int(time.mktime(dt.timetuple()))
     aud_start_t=int(aud_end_t-secs_prior)
-    
-    #idxs=idxs if len(idxs) else _get_significant_idxs(aud_start_t, aud_end_t, maximum=10)
-    idxs=_get_significant_idxs(aud_start_t, aud_end_t, maximum=10)
+    exclude_idxs=[494] if 'filter_silience' in request.args else None
+    idxs=idxs or _get_significant_idxs(aud_start_t, aud_end_t, maximum=max_classes, exclude_idxs=exclude_idxs)
     
     plot_url =f'/ss/hist_plot/generate_prior_plot?stacked={stacked}&max_classes={max_classes}&max_samples={max_samples}&secs_prior={secs_prior}'
     for _n in idxs:
         plot_url=plot_url+f'&idxs={_n}'
+
     
     return render_template('prior_show.html',
                            from_t=aud_start_t,
