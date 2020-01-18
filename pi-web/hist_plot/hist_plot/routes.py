@@ -116,6 +116,42 @@ def _create_figure(times,infs,inf_names=None,stacked=False):
     axis.legend(labels=inf_names)
     return fig
 
+def create_bokeh_figure(times,infs,inf_names=None,stacked=False):
+
+    p = figure(plot_height=600, plot_width=600,
+               title='Sound Scene',
+               x_axis_label='Times',
+               y_axis_label='Number of Flights')
+
+    source = ColumnDataSource(
+        data=dict(
+            xvals=times,
+            yvals=infs,
+        )
+    )
+    p.hline_stack("xvals", "yvals", source=source, fill_alpha=0.2, size=5)
+
+    callback = CustomJS(args=dict(source=source), code="""
+        // get data source from Callback args
+        
+        var ind=source.selected.indices
+        console.log('ind',source.selected.indices);
+        console.log(source.data.xvals);
+        console.log(source.data.yvals);
+
+        for (i =0; i<ind.length;i++){
+          
+            console.log(source.data.xvals[ind[i]]);
+            console.log(source.data.yvals[ind[i]]);
+        }
+        t0=source.data.xvals[ind[0]]
+        t1=source.data.xvals[ind[ind.length-1]]
+        window.location.href =  '/ss/hist_plot/play_threshold?idx_thresh=.1&from_t=' + t0 + '&to_t=' + t1
+    """)
+    p.add_tools(BoxSelectTool(dimensions="width", callback=callback))
+
+    return p
+
 @app.route('/ss/hist_plot', methods=['GET'])
 def home(**kwargs):
     
@@ -192,6 +228,10 @@ def generate_prior_plot(**kwargs):
                          df.to_numpy(),
                          class_names,
                          stacked=stacked)
+    fig = _create_bokeh_figure(times,
+                               df.to_numpy(),
+                               class_names,
+                               stacked=stacked)
     output = io.BytesIO()
     FigureCanvas(fig).print_png(output)
     return Response(output.getvalue(), mimetype='image/png')
