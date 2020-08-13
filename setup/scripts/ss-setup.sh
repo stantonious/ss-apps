@@ -15,7 +15,7 @@ pushd ${tmp_folder}
 #install seeed mic array
 git clone https://github.com/respeaker/seeed-voicecard.git
 pushd seeed-voicecard
-sudo ./install.sh
+sudo ./install.sh --compat-kernel
 popd 
 
 #install system packages
