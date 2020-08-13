@@ -3,6 +3,7 @@ set -x
 set -e
 branch=master
 sudo apt -y update
+sudo apt -y full-upgrade
 
 #install useful utils
 sudo apt install -y vim bc git  python-pip python3-virtualenv python3-dev
@@ -14,11 +15,11 @@ pushd ${tmp_folder}
 #install seeed mic array
 git clone https://github.com/respeaker/seeed-voicecard.git
 pushd seeed-voicecard
-sudo ./install.sh
+sudo ./install.sh --compat-kernel
 popd 
 
 #install system packages
-sudo apt-get install -y openmpi-bin libopenmpi-dev libhdf5-dev portaudio19-dev python3-scipy llvm ffmpeg libblas3 liblapack3 liblapack-dev libblas-dev libatlas-base-dev
+sudo apt-get install -y openmpi-bin libopenmpi-dev libhdf5-dev portaudio19-dev python3-scipy llvm-9 ffmpeg libblas3 liblapack3 liblapack-dev libblas-dev libatlas-base-dev
 
 #install python env
 mkdir ~/venvs
@@ -68,6 +69,7 @@ sudo systemctl enable ss-inf-recorder
 
 #pip packages
 #TODO - Can any come in as system packages?
+export LLVM_CONFIG=/usr/bin/llvm-config-9
 pip install pyaudio bokeh flask sqlalchemy pika gunicorn resampy psycopg2 pandas matplotlib
 
 #install tensorflow lite
