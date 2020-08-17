@@ -24,7 +24,6 @@ parser = argparse.ArgumentParser(
 
 img_rcv, img_snd = multiprocessing.Pipe(False)
 
-parser.add_argument('--num-images', type=int, required=True)
 parser.add_argument('--conf', type=float, required=True)
 parser.add_argument('--idx', type=str, required=True)
 parser.add_argument('--dump-dir', type=str, required=True)
@@ -48,7 +47,6 @@ def snap_pics(img_rcv,
         if img_rcv.poll(2):
             if not camera:
                 camera = picamera.PiCamera()
-                camera.__enter__()
                 camera.resolution = (xres, yres)
                 camera.start_preview()
                 time.sleep(warmup_time)
@@ -59,7 +57,6 @@ def snap_pics(img_rcv,
 
         else:
             if camera and time.time() > on_since + keep_warm:
-                camera.__exit__()
                 camera = None
 
 
