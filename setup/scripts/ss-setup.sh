@@ -32,6 +32,7 @@ source ~/venvs/ss/bin/activate
 # make ss env
 sudo mkdir /var/log/ss && sudo chown pi:pi /var/log/ss
 sudo mkdir -p /ss/archive/audio 
+sudo mkdir -p /ss/archive/images
 sudo mkdir -p /ss/archive/inference
 sudo mkdir -p /ss/labels
 sudo mkdir -p /ss/data

@@ -1,0 +1,13 @@
+[Unit]
+Description=img snap from inference
+Wants=ss-yamnet-inf.service
+After=ss-yamnet-inf.service
+
+[Service]
+User=pi
+Type=simple
+ExecStart=ss-img.sh 0 .4 /ss/archive/images/
+
+[Install]
+WantedBy=multi-user.target
+
