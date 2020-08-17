@@ -73,6 +73,7 @@ if __name__ == '__main__':
 
     img_thread = Thread(target=snap_pics, args=(img_rcv,
                                                 args.dump_dir,
+                                                args.idx,
                                                 args.xres,
                                                 args.yres,))
 
