@@ -1,9 +1,8 @@
 To Setup
 
 ```
-branch=yamnet
 cd /tmp
-wget https://raw.githubusercontent.com/stantonious/ss-apps/${branch}/setup/scripts/ss-setup.sh
+wget https://raw.githubusercontent.com/stantonious/ss-apps/master/setup/scripts/ss-setup.sh
 chmod +x ss-setup.sh
 ./ss-setup.sh
 ```
