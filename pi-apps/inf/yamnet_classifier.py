@@ -34,7 +34,7 @@ fh.setLevel(logging.DEBUG)
 RATE = 16000
 # RATE = 48000
 CHUNK = 1024
-IDX = [range(5)]
+IDX = range(5)
 CHANNELS = 2
 # CHANNELS = 1
 
