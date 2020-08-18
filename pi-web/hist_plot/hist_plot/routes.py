@@ -13,7 +13,8 @@ from dateutil import parser
 import os,glob,re,shutil,io
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
-from . import app, Inference, utilities
+from . import app, Inference, utilities, db_session
+from sqlalchemy import func,desc
 
 ss_root='/ss'
 ss_archive=os.path.join(ss_root,'archive')
@@ -30,13 +31,31 @@ opts={k:v for k,v in sorted(opts.items(), key=lambda x:x[1])}
 
 all_idxs={_n['index']:_n['display_name'] for _i, _n in cmap.loc[:].iterrows()}
 
+def _get_class_map(idxs):
+    return {_n['index']:_n['display_name'] for _i, _n in cmap.loc[idxs].iterrows()}
+
+def _get_significant_idxs(from_dt,to_dt,maximum=None,exclude_idxs=None):
+    from_dt=datetime.datetime.fromtimestamp(from_dt) if isinstance(from_dt,int) else from_dt
+    to_dt=datetime.datetime.fromtimestamp(to_dt) if isinstance(to_dt,int) else to_dt
+    
+    q=db_session.query(Inference.idx,func.avg(Inference.conf).label('confavg')).filter(Inference.at >= from_dt).filter(Inference.at < to_dt).group_by(Inference.idx).order_by(desc('confavg'))
+    
+    if exclude_idxs:
+        q=q.filter(~Inference.idx.in_(exclude_idxs))
+    q=q.group_by(Inference.idx).order_by(desc('confavg'))
+    if maximum:
+        q=q.limit(maximum)
+    
+    d=q.all()
+    return [_n.idx for _n in d]
+
+    
 def _get_sample_times(from_dt,to_dt,criteria):
     
     from_dt=datetime.datetime.fromtimestamp(from_dt) if isinstance(from_dt,int) else from_dt
     to_dt=datetime.datetime.fromtimestamp(to_dt) if isinstance(to_dt,int) else to_dt
     res=[]
     for _n in criteria:
-        print ('setting crit',_n)
         q=Inference.query.filter(Inference.at >= from_dt).filter(Inference.at < to_dt)
         q=q.filter(Inference.idx == _n[0]).filter(Inference.conf>= _n[1])
         
@@ -46,10 +65,12 @@ def _get_sample_times(from_dt,to_dt,criteria):
     return res
 
 def _get_audio_spans(from_t,to_t,criteria,span):
-    print ('criteria',criteria)
     res = _get_sample_times(from_t,to_t,criteria)
     res = sorted([(_n-span//2,_n+span//2) for _n in res])
+    raw_audio = np.full((0,2),0,dtype=np.int16)
     
+    if len(res) == 0:
+        return raw_audio
     simplified=[res[0]]
     
     for _n in res[1:]:
@@ -60,12 +81,6 @@ def _get_audio_spans(from_t,to_t,criteria,span):
             simplified.append(_n)
     
     for _n in simplified:
-        print ('simple',_n[1]-_n[0],_n[0])
-        
-    raw_audio = np.full((0,2),0,dtype=np.int16)
-    
-    for _n in simplified:
-        print ('n',_n)
         mid=(_n[0]+_n[1])//2
         half_width=mid-_n[0]
         audio_bytes=utilities._get_audio_bytes(d=ss_audio,
@@ -116,6 +131,42 @@ def _create_figure(times,infs,inf_names=None,stacked=False):
     axis.legend(labels=inf_names)
     return fig
 
+def create_bokeh_figure(times,infs,inf_names=None,stacked=False):
+
+    p = figure(plot_height=600, plot_width=600,
+               title='Sound Scene',
+               x_axis_label='Times',
+               y_axis_label='Number of Flights')
+
+    source = ColumnDataSource(
+        data=dict(
+            xvals=times,
+            yvals=infs,
+        )
+    )
+    p.hline_stack("xvals", "yvals", source=source, fill_alpha=0.2, size=5)
+
+    callback = CustomJS(args=dict(source=source), code="""
+        // get data source from Callback args
+        
+        var ind=source.selected.indices
+        console.log('ind',source.selected.indices);
+        console.log(source.data.xvals);
+        console.log(source.data.yvals);
+
+        for (i =0; i<ind.length;i++){
+          
+            console.log(source.data.xvals[ind[i]]);
+            console.log(source.data.yvals[ind[i]]);
+        }
+        t0=source.data.xvals[ind[0]]
+        t1=source.data.xvals[ind[ind.length-1]]
+        window.location.href =  '/ss/hist_plot/play_threshold?idx_thresh=.1&from_t=' + t0 + '&to_t=' + t1
+    """)
+    p.add_tools(BoxSelectTool(dimensions="width", callback=callback))
+
+    return p
+
 @app.route('/ss/hist_plot', methods=['GET'])
 def home(**kwargs):
     
@@ -131,8 +182,12 @@ def date_select(**kwargs):
 @app.route('/ss/hist_plot/prior_select', methods=['GET'])
 def prior_select(**kwargs):
     
+    dt=datetime.datetime.utcnow()
+    idxs=_get_significant_idxs(dt-datetime.timedelta(seconds=600),
+                               dt, 
+                               maximum=10)
     return render_template('prior_select.html',
-                           idx_options=opts)
+                           idx_options=_get_class_map(idxs))
 
 @app.route('/ss/hist_plot/play_select', methods=['GET'])
 def play_select(**kwargs):
@@ -152,16 +207,20 @@ def prior_plot(**kwargs):
     dt=datetime.datetime.utcnow()
     aud_end_t=int(time.mktime(dt.timetuple()))
     aud_start_t=int(aud_end_t-secs_prior)
+    exclude_idxs=[494] if 'filter_silence' in request.args else None
+    idxs=idxs or _get_significant_idxs(aud_start_t, aud_end_t, maximum=max_classes, exclude_idxs=exclude_idxs)
     
-    aud_url=f'/ss/hist_plot/play?aud_duration=10' if idx_thresh<=0 else f'/ss/hist_plot/play_threshold?idx_thresh={idx_thresh}&from_t={aud_start_t}&to_t={aud_end_t}'
     plot_url =f'/ss/hist_plot/generate_prior_plot?stacked={stacked}&max_classes={max_classes}&max_samples={max_samples}&secs_prior={secs_prior}'
     for _n in idxs:
         plot_url=plot_url+f'&idxs={_n}'
-        aud_url=aud_url+f'&idxs={_n}'
+
     
     return render_template('prior_show.html',
-                           plot_url=plot_url,
-                           aud_url=aud_url) 
+                           from_t=aud_start_t,
+                           to_t=aud_end_t,
+                           idx_options=_get_class_map(idxs),
+                           plot_url=plot_url) 
+    
 @app.route('/ss/hist_plot/generate_prior_plot', methods=['GET'])
 def generate_prior_plot(**kwargs):  
     idxs=[int(_n) for _n in request.args.getlist('idxs')]
@@ -192,6 +251,10 @@ def generate_prior_plot(**kwargs):
                          df.to_numpy(),
                          class_names,
                          stacked=stacked)
+    fig = _create_bokeh_figure(times,
+                               df.to_numpy(),
+                               class_names,
+                               stacked=stacked)
     output = io.BytesIO()
     FigureCanvas(fig).print_png(output)
     return Response(output.getvalue(), mimetype='image/png')

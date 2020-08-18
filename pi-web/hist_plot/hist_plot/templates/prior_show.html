@@ -21,10 +21,22 @@
 
 <body>
 	<center>
-	<img src="{{ plot_url }} "/><br/>
-	<audio controls>
-  		<source src="{{ aud_url }}" />
-	</audio>
+		<img src="{{ plot_url }} "/><br/>
+	
+		<form action="/ss/hist_plot/play_threshold" method="GET" >
+			<input type="hidden" name="from_t" value="{{ from_t }}"> 
+			<input type="hidden" name="to_t" value="{{ to_t }}"> 
+			<br/>
+			Classes<br/>
+			<select name="idxs" multiple>
+			  	{% for key,value in idx_options.items() %}
+			  		<option value="{{ key }}">{{ value }}</option>
+			  	{% endfor %}
+			 </select> <br/>
+			 Threshold (0-1.0)<br/>
+			 <input type="text" name="idx_thresh" value="0">  <br>
+			 <input type="submit" value="Submit"><br>
+		</form>
 	</center>
 	
 </body>

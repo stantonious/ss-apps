@@ -8,6 +8,7 @@ import logging
 import sys
 app = Flask(__name__)
 
+
 from sqlalchemy import create_engine
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session, scoped_session, sessionmaker
