@@ -251,10 +251,6 @@ def generate_prior_plot(**kwargs):
                          df.to_numpy(),
                          class_names,
                          stacked=stacked)
-    fig = _create_bokeh_figure(times,
-                               df.to_numpy(),
-                               class_names,
-                               stacked=stacked)
     output = io.BytesIO()
     FigureCanvas(fig).print_png(output)
     return Response(output.getvalue(), mimetype='image/png')
