@@ -114,7 +114,7 @@ def _load_inf_data(from_dt,to_dt,idxs=None):
         d.append([_k] + _v.tolist())
     df = pd.DataFrame(d,columns = ['t'] + [_n for _n in idxs])
     df=df.set_index('t')
-    df=df.ix[:, df.mean(axis=0).sort_values(ascending=False).index] #reorder columns min->max
+    #df=df.ix[:, df.mean(axis=0).sort_values(ascending=False).index] #reorder columns min->max
     return df
         
 
