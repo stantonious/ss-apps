@@ -15,9 +15,10 @@ pushd ${tmp_folder}
 #install seeed mic array
 git clone https://github.com/respeaker/seeed-voicecard.git
 pushd seeed-voicecard
-sed -i 's/^FORCE/##FORCE/g' install.sh
-sed -i 's/#FORCE/FORCE/g' install.sh
-sudo ./install.sh --compat-kernel
+#sed -i 's/^FORCE/##FORCE/g' install.sh
+#sed -i 's/#FORCE/FORCE/g' install.sh
+#sudo ./install.sh --compat-kernel
+sudo ./install.sh 
 popd 
 
 #install system packages
@@ -104,7 +105,7 @@ sudo curl -XGET -o ${vggish_dir}/vggish_pca_params.npz "https://storage.googleap
 
 #TODO - Install from clone above?
 #install ss
-declare -a pkgs=("pi-core" "pi-apps/image" "pi-apps/leds" "pi-apps/br" "pi-apps/inf" "pi-apps/status" "pi-apps/debug" "pi-web/hist_plot" "pi-web/inf_gui" "pi-web/labeler" "pi-svc/audio_playback")
+declare -a pkgs=("pi-core" "pi-apps/image" "pi-apps/leds" "pi-apps/br" "pi-apps/inf" "pi-apps/status" "pi-apps/debug" "pi-web/hist_plot" "pi-web/inf_gui" "pi-web/labeler" "pi-svc/audio_playback" "pi-apps/neosensory")
 for i in "${pkgs[@]}"
 do
 	pip install --upgrade --no-deps --force-reinstall git+https://git@github.com/stantonious/ss-apps.git@${branch}#subdirectory="${i}"

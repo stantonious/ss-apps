@@ -1,0 +1,13 @@
+[Unit]
+Description=Buzz Device Service
+Wants=ss-yamnet-inf.service
+After=ss-yamnet-inf.service
+
+[Service]
+User=root
+Type=simple
+ExecStart=ss-buzz.sh 36
+
+[Install]
+WantedBy=multi-user.target
+
