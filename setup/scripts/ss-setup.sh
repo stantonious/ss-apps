@@ -112,6 +112,10 @@ do
 done
 
 
+#TODO Remove or put into setup.py for pi-apps/inf
+#To fix keras issue with str doesn't contain decode...grrr
+pip install --upgrade h5py==2.10.0
+
 (crontab -l 2>/dev/null; echo "0 0 * * * find /ss/archive -type f -mtime +2 -delete") | crontab -
 
 read -p "Would you like to install RaspiWifi? (y/N)" -n 1 -r -s
