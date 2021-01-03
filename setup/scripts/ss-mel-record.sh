@@ -1,4 +1,4 @@
 #!/bin/bash
 
 source /home/pi/venvs/ss/bin/activate
-inf_recorder.py
+mel_recorder.py --archive-dir=$1

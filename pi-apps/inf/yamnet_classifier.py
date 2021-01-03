@@ -113,8 +113,11 @@ def infer(frm_rcv):
                              )
     
     logger.info('model ')
-    yamnet = yamnet_model.yamnet_frames_model(params)
-    yamnet.load_weights('/opt/soundscene/yamnet.h5')
+    try:
+        yamnet = yamnet_model.yamnet_frames_model(params.Params())
+        yamnet.load_weights('/opt/soundscene/yamnet.h5')
+    except Exception as e:
+        logger.exception('unable to load yamnet')
     logger.info('done model ')
     
     while True:
@@ -125,7 +128,7 @@ def infer(frm_rcv):
                 normalized_audio_1hz = np.mean(normalized_audio_1hz, axis=1)
 
             # returns [1,classes] classes=521
-            scores, mel = yamnet.predict(np.reshape(normalized_audio_1hz, [1, -1]), steps=1)
+            scores, emb,mel = yamnet.predict(normalized_audio_1hz, steps=1)
 
             for _n in scores:#1 sec samples
                 top_idxs = np.argsort(_n)[::-1][:top_k]

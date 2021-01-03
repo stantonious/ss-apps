@@ -6,7 +6,7 @@ After=ss-yamnet-inf.service
 [Service]
 User=pi
 Type=simple
-ExecStart=ss-mel-record.sh
+ExecStart=ss-mel-record.sh /ss/archive/images
 
 [Install]
 WantedBy=multi-user.target
