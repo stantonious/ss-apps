@@ -20,6 +20,7 @@ setup(name='ss_neosensory',
                  ''',
       author='Bryan Staley',
       author_email='bryan.w.staley@gmail.com',
-      scripts=[ 'buzz.py',],
+      scripts=[ 'buzz.py',
+                'buzz-controller.py'],
       packages=[],
       )

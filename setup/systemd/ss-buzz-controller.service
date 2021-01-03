@@ -6,7 +6,7 @@ After=ss-yamnet-inf.service
 [Service]
 User=root
 Type=simple
-ExecStart=ss-buzz.sh 38 .80
+ExecStart=ss-buzz-controller.sh
 
 [Install]
 WantedBy=multi-user.target
