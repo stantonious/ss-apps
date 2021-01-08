@@ -4,13 +4,12 @@ import asyncio
 import argparse
 import sys
 import pika
-import numpy as np
 import json
+import signal
 import logging
 from bleak import BleakClient
 from bleak import discover
 from neosensory_python import NeoDevice
-from yamnet import yamnet as yamnet_model
 import threading
 import multiprocessing
 
@@ -27,14 +26,13 @@ logger.addHandler(handler)
 frm_rcv, frm_snd = multiprocessing.Pipe(False)
 
 parser = argparse.ArgumentParser(
-    description='send notification for provided inference')
+    description='Handle communication with the buzz')
 
-parser.add_argument('--connection-attempts', type=int, default=10,required=False)
+parser.add_argument('--connection-attempts', type=int, default=2,required=False)
 parser.add_argument('--buzz-addr', type=str, default='DB:9F:31:D3:29:53', required=False)
 
 def notification_handler(sender, data):
     logger.info("{0}: {1}".format(sender, data))
-
 
 def _discover_neo(disc_time):
     logger.info('discovering buzz %s seconds',disc_time)
@@ -60,16 +58,17 @@ def buzz_along(connection_attempts,frm_rcv,buzz_addr=None):
 
         my_buzz = NeoDevice(client)
 
-        x = await client.is_connected()
+        connectionResult = await client.is_connected()
 
-        logger.info('connected:%s',x)
+        logger.info('connected:%s',connectionResult)
 
-        while x == False and connection_attempts > 0:
+        while connectionResult == False and connection_attempts > 0:
             try:
                 await client.connect()
-                await asyncio.sleep(3)
+                await asyncio.sleep(1)
                 logger.info('attempts left %s',connection_attempts)
                 x = await client.is_connected()
+                connection_attempts-=1
             except Exception:
                 logger.exception('Connection failed')
 
@@ -92,25 +91,31 @@ def buzz_along(connection_attempts,frm_rcv,buzz_addr=None):
 
         logger.info('starting recv loop')
         num_motors=4
+        running_default = False
         #drain
+        while frm_rcv.poll():
+            _ = frm_rcv.recv()
         while True:
             try:
-                while frm_rcv.poll():
-                    print ('drain another')
-                    hz, frames_per_send,frames = frm_rcv.recv()
+                hz, frames_per_send,frames = frm_rcv.recv()
             except Exception as e:
                 logger.exception('Unable to drain pipe')
-            #drain queue to get latest
-            logger.info('more frames %s',frames)
-            if None in frames:
-                logger.info('received stop frame')
                 break
+            if None in frames:
+                if not running_default:
+                    logger.info('Starting default algo')
+                    await my_buzz.resume_device_algorithm()
+                    running_default = True
+                continue
+            else:
+                if running_default:
+                    logger.info('Pausing default algo')
+                    await my_buzz.pause_device_algorithm()
+                    running_default = False
             try:
                 hz_sleep_time=1.0/hz
-                num_send_frames=len(frames)//num_motors
                 step_size = num_motors * frames_per_send
-                print ('sending frames :',num_send_frames)
-                for _i in range(0,len(frames),step_size): #TODO remove -1 (wierd 000 last frame)
+                for _i in range(0,len(frames),step_size):
                     frames_to_send=frames[_i:_i+step_size]
                     logger.info('sending:%s',frames_to_send)
                     await my_buzz.vibrate_motors(frames_to_send)
@@ -123,11 +128,16 @@ def buzz_along(connection_attempts,frm_rcv,buzz_addr=None):
         logger.info('disconnect')
 
         #Resume algo
+        logger.info('resuming algo')
         await my_buzz.resume_device_algorithm()
+        logger.info('disconnecting')
         await client.disconnect()
+        logger.info('disconnect')
 
     loop = asyncio.new_event_loop()
     loop.run_until_complete(run(loop,connection_attempts,frm_rcv,buzz_addr))
+
+
 
 if __name__ == "__main__":
 
@@ -144,13 +154,31 @@ if __name__ == "__main__":
     buzz_thread = threading.Thread(target=buzz_along,args=(args.connection_attempts,
                                                            frm_rcv,
                                                            args.buzz_addr))
+    buzz_thread.setDaemon(True)
     buzz_thread.start()
 
     running_avg = 0.
 
+    def _handle_kill(_signo,_stackframe):
+        global buzz_thread
+        frm_snd.send(None)
+        buzz_thread.join()
+        logger.info('killed buzz thread')
+        channel.stop_consuming()
+
+    signal.signal(signal.SIGTERM, _handle_kill)
+
     def _callback(ch, method, properties, body):
         global buzz_thread
         try:
+
+            if buzz_thread.is_alive() == False:
+                logger.warning('Buzz thread died...restarting')
+                buzz_thread = threading.Thread(target=buzz_along, args=(args.connection_attempts,
+                                                                        frm_rcv,
+                                                                        args.buzz_addr))
+                buzz_thread.start()
+
             d = json.loads(body)
             desired_hz = d['hz']
             frames_per_send = d['fps']
