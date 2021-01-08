@@ -51,43 +51,50 @@ def buzz_along(connection_attempts,frm_rcv,buzz_addr=None):
     async def run(loop,connection_attempts,frm_rcv,buzz_addr=None):
         logger.info('staring buzz run loop')
 
-        #TODO - discover neo
-        buzz_addr=buzz_addr or _discover_neo(10)
 
-        client = BleakClient(buzz_addr, loop=loop)
+        try:
+            #TODO - discover neo
+            buzz_addr=buzz_addr or _discover_neo(10)
+    
+            client = BleakClient(buzz_addr, loop=loop)
+    
+            my_buzz = NeoDevice(client)
+    
+            await asyncio.sleep(1)
+    
+            connectionResult = await client.is_connected()
+    
+            logger.info('connected:%s',connectionResult)
+    
+            while connectionResult == False and connection_attempts > 0:
+                try:
+                    await client.connect()
+                    await asyncio.sleep(1)
+                    logger.info('attempts left %s',connection_attempts)
+                    connectionResult = await client.is_connected()
+                    connection_attempts-=1
+                except Exception:
+                    logger.exception('Connection failed')
+    
+            if connection_attempts <= 0:
+                logger.warning('giving up..')
+                return
+    
+            logger.info("Connection State: {0}\r\n".format(connectionResult))
+    
+            await my_buzz.enable_notifications(notification_handler)
+    
+            await asyncio.sleep(1)
+    
+            await my_buzz.request_developer_authorization()
+    
+            await my_buzz.accept_developer_api_terms()
+    
+            await my_buzz.pause_device_algorithm()
 
-        my_buzz = NeoDevice(client)
-
-        connectionResult = await client.is_connected()
-
-        logger.info('connected:%s',connectionResult)
-
-        while connectionResult == False and connection_attempts > 0:
-            try:
-                await client.connect()
-                await asyncio.sleep(1)
-                logger.info('attempts left %s',connection_attempts)
-                x = await client.is_connected()
-                connection_attempts-=1
-            except Exception:
-                logger.exception('Connection failed')
-
-        if connection_attempts <= 0:
-            logger.wanring('giving up..')
-            return
-
-        logger.info("Connection State: {0}\r\n".format(x))
-
-        await my_buzz.enable_notifications(notification_handler)
-
-        await asyncio.sleep(1)
-
-        await my_buzz.request_developer_authorization()
-
-        await my_buzz.accept_developer_api_terms()
-
-        await my_buzz.pause_device_algorithm()
-
+        except Exception as e:
+            logger.exception('wtf')
+            raise e
 
         logger.info('starting recv loop')
         num_motors=4
@@ -120,7 +127,6 @@ def buzz_along(connection_attempts,frm_rcv,buzz_addr=None):
                     logger.info('sending:%s',frames_to_send)
                     await my_buzz.vibrate_motors(frames_to_send)
                     await asyncio.sleep(hz_sleep_time-.1) #- for transmission time
-
             except:
                 logger.exception('Unable to vibrate motors')
                 break
