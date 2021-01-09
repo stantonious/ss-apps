@@ -5,3 +5,4 @@ dist/
 .pydevproject
 .project
 MANIFEST
+.idea/
