@@ -29,16 +29,18 @@ class_names = []
 for _n in class_mapping_csv:
     _CLASS_MAPPING[int(_n['index'])] = _n['display_name']
 
-moto_int_ds = [ ColumnDataSource(data=dict(pos=[], y=[])),
-                ColumnDataSource(data=dict(pos=[], y=[])),
-                ColumnDataSource(data=dict(pos=[], y=[])),
-                ColumnDataSource(data=dict(pos=[], y=[])) ]
+moto_int_ds = [ ColumnDataSource(data=dict(time=[], intensity=[])),
+                ColumnDataSource(data=dict(time=[], intensity=[])),
+                ColumnDataSource(data=dict(time=[], intensity=[])),
+                ColumnDataSource(data=dict(time=[], intensity=[])) ]
 
 @gen.coroutine
 def update(motor_intensities, time_step):
     for _i,motor_int in enumerate(motor_intensities):
+        print ('t',time_step,flush=True)
         moto_int_ds[_i].stream(
-            dict(pos=[motor_int], y=[time_step]), rollover=1)
+            dict(time=[time_step], intensity=[motor_int]),
+            rollover=200)
 
 palette = Category20_20
 
@@ -55,14 +57,12 @@ line_p.xaxis.formatter = DatetimeTickFormatter(
     hourmin=['%H:%M:%S'],
     hours=['%H:%M:%S'],)
 
-for _i,_n in enumnerate(moto_int_ds):
-    line_p.line(x='time',
-                y='y',
-                color=palette[_i],
-                legend=cname,
-                # line_width=2,
-                line_dash='dashed',
-                source=_n, )
+for _i,_n in enumerate(moto_int_ds):
+    line_p.circle(x='time',
+                  y='intensity',
+                  color=palette[_i],
+                  legend='moto{} intensity'.format(_i),
+                  source=_n,)
 
 line_p.legend.location = "top_right"
 line_p.legend.background_fill_alpha = .2
@@ -82,17 +82,21 @@ def process_intensity_update():
     connection = pika.BlockingConnection(
         pika.ConnectionParameters('localhost'))
     channel = connection.channel()
-    #channel.exchange_declare(exchange='buzz',
-    #                         exchange_type='fanout')
+    channel.exchange_declare(exchange='buzz',
+                             exchange_type='fanout')
     result = channel.queue_declare(queue='', exclusive=True)
     channel.queue_bind(queue=result.method.queue, exchange='buzz')
+
+    print ('connecting to mq',flush=True)
 
     def _callback(ch, method, properties, body):
         d = json.loads(body)
         hz = d['hz']
-        fps - d['fps']
+        fps = d['fps']
+
 
         pattern = np.asarray(d['pattern'])
+
 
         pattern = pattern.reshape(hz,fps,4)
         t = int(time.time())
@@ -110,4 +114,5 @@ def process_intensity_update():
     channel.start_consuming()
 
 update_thread = Thread(target=process_intensity_update, args=())
+update_thread.start()
 

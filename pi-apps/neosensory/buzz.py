@@ -227,7 +227,7 @@ if __name__ == "__main__":
 
                 if args.pattern == Pattern.sinusoidal:
                     motor_amp_frames = _get_sinusoidal_pattern(
-                        num_steps=4*10,
+                        num_steps=args.hz*args.fps,
                         step_len=.2,
                         buzz_max_intensity=args.buzz_max_intensity,
                         motor_multiplier=[1,1,1,1],
