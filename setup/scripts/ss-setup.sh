@@ -105,7 +105,7 @@ sudo curl -XGET -o ${vggish_dir}/vggish_pca_params.npz "https://storage.googleap
 
 #TODO - Install from clone above?
 #install ss
-declare -a pkgs=("pi-core" "pi-apps/image" "pi-apps/leds" "pi-apps/br" "pi-apps/inf" "pi-apps/status" "pi-apps/debug" "pi-web/hist_plot" "pi-web/inf_gui" "pi-web/labeler" "pi-svc/audio_playback")
+declare -a pkgs=("pi-core" "pi-apps/image" "pi-apps/leds" "pi-apps/br" "pi-apps/inf" "pi-apps/status" "pi-apps/debug" "pi-web/neo_plot" "pi-web/hist_plot" "pi-web/inf_gui" "pi-web/labeler" "pi-svc/audio_playback")
 for i in "${pkgs[@]}"
 do
 	pip install --upgrade --no-deps --force-reinstall git+https://git@github.com/stantonious/ss-apps.git@${branch}#subdirectory="${i}"

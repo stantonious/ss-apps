@@ -13,7 +13,7 @@ setup(name='neo_gui',
                         'pika',
                         'numpy',
                         ],
-      description='''ss inference engine gui.
+      description='''ss neo intensity gui.
                  ''',
       author='Bryan Staley',
       author_email='bryan.w.staley@gmail.com',
