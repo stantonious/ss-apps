@@ -1,0 +1,13 @@
+[Unit]
+Description=Record YAMNET embeddings
+Wants=ss-yamnet-inf.service
+After=ss-yamnet-inf.service
+
+[Service]
+User=pi
+Type=simple
+ExecStart=ss-emb-recorder-local.sh /ss/archive/embeddings 0 .8
+
+[Install]
+WantedBy=multi-user.target
+
