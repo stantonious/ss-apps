@@ -7,7 +7,7 @@ from distutils.core import setup
 
 version = '1.0'
 
-setup(name='neo_gui',
+setup(name='inf_gui',
       version=version,
       install_requires=['bokeh',
                         'pika',

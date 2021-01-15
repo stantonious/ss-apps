@@ -140,7 +140,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
 fi
 
 #Useful aliases
-echo "alias svsls=systemctl list-units --type=service --state=running" >> ~/.bashrc
+echo "alias svcls='systemctl list-units --type=service --state=running'" >> ~/.bashrc
 #clean up
 popd
 sudo rm -rf ${tmp_folder}
