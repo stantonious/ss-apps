@@ -17,6 +17,6 @@ setup(name='neo_gui',
                  ''',
       author='Bryan Staley',
       author_email='bryan.w.staley@gmail.com',
-      scripts=['run_neo_gui.sh'],
-      packages=['neo_gui'],
+      scripts=['run_inf_gui.sh'],
+      packages=['inf_gui'],
       )
