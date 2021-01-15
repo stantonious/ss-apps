@@ -128,9 +128,9 @@ def infer(frm_rcv):
                 normalized_audio_1hz = np.mean(normalized_audio_1hz, axis=1)
 
             # returns [1,classes] classes=521
-            scores, emb,mel = yamnet.predict(normalized_audio_1hz, steps=1)
+            scores, emb,mel = yamnet.predict(normalized_audio_1hz,steps=1 )
 
-            for _n in scores:#1 sec samples
+            for _n in scores[:1]:#TODO use all 1 sec samples
                 top_idxs = np.argsort(_n)[::-1][:top_k]
                 inferences=_n[top_idxs]
 
@@ -138,8 +138,8 @@ def infer(frm_rcv):
                                                   routing_key='',
                                                   body=json.dumps(dict(time=aud_time,
                                                                        inferences=inferences.tolist(),
-                                                                       mel=mel.tolist(),
-                                                                       embeddings=[],#no embeddings produced for yamnet
+                                                                       mel=mel[:96,...].tolist(),
+                                                                       embeddings=emb[1].tolist(),
                                                                        idxs=top_idxs.tolist())))
         except Exception as e:
             logger.exception(e)

@@ -51,7 +51,6 @@ def buzz_along(connection_attempts,frm_rcv,buzz_addr=None):
     async def run(loop,connection_attempts,frm_rcv,buzz_addr=None):
         logger.info('staring buzz run loop')
 
-
         try:
             #TODO - discover neo
             buzz_addr=buzz_addr or _discover_neo(10)
@@ -92,34 +91,27 @@ def buzz_along(connection_attempts,frm_rcv,buzz_addr=None):
     
             await my_buzz.pause_device_algorithm()
 
-        except Exception as e:
-            logger.exception('wtf')
-            raise e
-
-        logger.info('starting recv loop')
-        num_motors=4
-        running_default = False
-        #drain
-        while frm_rcv.poll():
-            _ = frm_rcv.recv()
-        while True:
-            try:
+            logger.info('starting recv loop')
+            num_motors=4
+            running_default = False
+            #drain
+            while frm_rcv.poll():
+                _ = frm_rcv.recv()
+            while True:
                 hz, frames_per_send,frames = frm_rcv.recv()
-            except Exception as e:
-                logger.exception('Unable to drain pipe')
-                break
-            if None in frames:
-                if not running_default:
-                    logger.info('Starting default algo')
-                    await my_buzz.resume_device_algorithm()
-                    running_default = True
-                continue
-            else:
-                if running_default:
-                    logger.info('Pausing default algo')
-                    await my_buzz.pause_device_algorithm()
-                    running_default = False
-            try:
+
+                if None in frames:
+                    if not running_default:
+                        logger.info('Starting default algo')
+                        await my_buzz.resume_device_algorithm()
+                        running_default = True
+                    continue
+                else:
+                    if running_default:
+                        logger.info('Pausing default algo')
+                        await my_buzz.pause_device_algorithm()
+                        running_default = False
+
                 hz_sleep_time=1.0/hz
                 step_size = num_motors * frames_per_send
                 for _i in range(0,len(frames),step_size):
@@ -127,18 +119,16 @@ def buzz_along(connection_attempts,frm_rcv,buzz_addr=None):
                     logger.info('sending:%s',frames_to_send)
                     await my_buzz.vibrate_motors(frames_to_send)
                     await asyncio.sleep(hz_sleep_time-.1) #- for transmission time
-            except:
-                logger.exception('Unable to vibrate motors')
-                break
-        await my_buzz.vibrate_motors([0,0,0,0])
-        logger.info('disconnect')
+        except Exception as e:
+            logger.exception('buzz processing loop failed')
 
-        #Resume algo
-        logger.info('resuming algo')
-        await my_buzz.resume_device_algorithm()
-        logger.info('disconnecting')
-        await client.disconnect()
-        logger.info('disconnect')
+            # Attempt disconnect
+            try:
+                logger.info('disconnecting')
+                await client.disconnect()
+            except:
+                pass
+            return
 
     loop = asyncio.new_event_loop()
     loop.run_until_complete(run(loop,connection_attempts,frm_rcv,buzz_addr))

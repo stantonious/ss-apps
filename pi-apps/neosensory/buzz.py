@@ -213,7 +213,7 @@ if __name__ == "__main__":
             for _i, _idx in enumerate(idxs):
                 idx = np.argwhere(np.asarray(d['idxs']) == _idx)
                 if idx.shape[0] >= 1:
-                    confidence[_i] = d['inferences'][idx[0, 0]]
+                    confidence[_i] = d['inferences'][idx[0,0]]
 
             if confidence[0] > args.conf_threshold:
                 logger.info('Idx:%s found with confidence: %s > %s...Buzzing!',_idx,confidence[0],args.conf_threshold)
@@ -227,7 +227,7 @@ if __name__ == "__main__":
 
                 if args.pattern == Pattern.sinusoidal:
                     motor_amp_frames = _get_sinusoidal_pattern(
-                        num_steps=args.hz*args.fps,
+                        num_steps=args.fps * args.hz,
                         step_len=.2,
                         buzz_max_intensity=args.buzz_max_intensity,
                         motor_multiplier=[1,1,1,1],

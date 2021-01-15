@@ -35,6 +35,7 @@ sudo mkdir /var/log/ss && sudo chown pi:pi /var/log/ss
 sudo mkdir -p /ss/archive/audio 
 sudo mkdir -p /ss/archive/images
 sudo mkdir -p /ss/archive/inference
+sudo mkdir -p /ss/archive/products
 sudo mkdir -p /ss/labels
 sudo mkdir -p /ss/data
 sudo chown pi:pi -R /ss

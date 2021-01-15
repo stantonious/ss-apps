@@ -6,7 +6,7 @@ After=ss-yamnet-inf.service
 [Service]
 User=pi
 Type=simple
-ExecStart=ss-gui.sh
+ExecStart=ss-inf-gui.sh
 
 [Install]
 WantedBy=multi-user.target
