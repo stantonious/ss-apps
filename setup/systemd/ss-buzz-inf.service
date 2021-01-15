@@ -7,7 +7,7 @@ After=ss-yamnet-inf.service
 User=root
 Type=simple
 # Speech Dog Baby Water
-ExecStart=ss-buzz-inf.sh 0 20 69 282 255
+ExecStart=ss-buzz-inf.sh 0 20 69 282 128
 
 [Install]
 WantedBy=multi-user.target

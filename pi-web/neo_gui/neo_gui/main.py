@@ -15,7 +15,6 @@ from bokeh.layouts import layout, grid
 from bokeh.models import ColumnDataSource, LabelSet
 from bokeh.palettes import inferno, Category20_20
 from bokeh.models.formatters import DatetimeTickFormatter
-from bokeh.models.widgets import Button
 from tornado import gen
 import pika
 import datetime
