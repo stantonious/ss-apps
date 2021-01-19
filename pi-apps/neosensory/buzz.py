@@ -104,10 +104,12 @@ def _get_mel_pattern(
     #TODO Not throw away signal
     mel = mel[remainder:,...].reshape(total_frames,depth,-1) #reshape to (time steps,samples,mel bins)
 
-    max_idxs=np.argmax(np.max(mel,axis=-1),axis=-1) #max std for 64 bins within hz block
+    #max_idxs=np.argmax(np.max(mel,axis=-1),axis=-1) #max std for 64 bins within hz block
+
+    max_idxs=np.argmax(np.mean(mel,axis=1),axis=-1) #max std for 64 bins within hz block
 
     max_mel_bins = []
-    for _i,_n in enumerate(max_idxs):
+    for _i,_n in enumerate(max_idxs.tolist()):
         max_mel_bins.append(np.argmax(mel[_i,_n,...]))
 
     #Scale to buzz intensity range
@@ -134,8 +136,7 @@ def _get_mel_span_pattern(
     desired_hz = desired_hz or 4
     fps = fps or 1
 
-    # Remove fill frames
-    mel = mel[np.std(mel,axis=-1) > 0]
+    mel = np.exp(mel)
 
     total_frames = desired_hz * fps
     depth,remainder = divmod(mel.shape[0],total_frames)
@@ -144,16 +145,22 @@ def _get_mel_span_pattern(
     #TODO Not throw away signal
     mel = mel[remainder:,...].reshape(total_frames,depth,-1) #reshape to (time steps,samples,mel bins)
 
-    max_idxs=np.argmax(np.max(mel,axis=-1),axis=-1) #max std for 64 bins within hz block
+    #Find max magnitude for samples in time step
+    mel_max = np.argmax(np.sum(mel,axis=-1),axis=-1)
 
-    max_mel_bins = []
-    for _i,_n in enumerate(max_idxs):
-        max_mel_bins.append(np.argmax(mel[_i,_n,...]))
+    max_mel_bins=[]
+    for _i,_n in enumerate(mel_max):
+        #Find max mel bin and sum'd magnitudes for max sample
+        max_mel_bins.append((np.argmax(mel[_i,_n]),np.sum(mel[_i,_n])))
+
 
     #Scale to buzz intensity range
-    def _get_buzz_intensities_per_motor(bins):
+    def _get_buzz_intensities_per_motor(bins,mag_threshold=4.1):
         int_per_step=[]
-        for _n in bins:
+        for _n,_i in bins:
+            if _i < mag_threshold: # good magnitude threshold (sum of mel bins magnitudes
+                int_per_step.append([0,0,0,0])
+                continue
             motor,intensity=divmod(_n,16)
             int_per_step.append([
                 intensity if motor == 0 else 0,
@@ -163,7 +170,6 @@ def _get_mel_span_pattern(
                 ])
         return np.asarray(int_per_step,dtype=np.float32)
 
-    #max_mel_bins = np.asarray(max_mel_bins,dtype=np.float32)
     max_mel_bins = _get_buzz_intensities_per_motor(max_mel_bins)
     max_mel_bins *= to_buzz_intensity
 

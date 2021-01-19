@@ -69,13 +69,13 @@ def update_inf(inferences, idxs,time_step):
     conf_avgs_idxs = zip(conf_avgs, idxs)
     for _i, (conf, idx) in enumerate(conf_avgs_idxs):
         inf_ds[idx].stream( dict(time=[datetime.datetime.fromtimestamp(time_step)],
-                                 conf=[conf]), rollover=20 )
+                                 conf=[conf]), rollover=100 )
 @gen.coroutine
 def update_motor_int(motor_intensities, time_step):
     for _i,motor_int in enumerate(motor_intensities):
         moto_int_ds[_i].stream(
             dict(time=[datetime.datetime.fromtimestamp(time_step)], intensity=[motor_int]),
-            rollover=200)
+            rollover=100)
 
 palette = Category20_20
 
@@ -102,14 +102,14 @@ for _i,(_k,_v) in enumerate(inf_ds.items()):
     inf_fig.line(x='time',
                  y='conf',
                  color=palette[_i],
-                 legend='{} conf'.format(_k),
+                 legend='{} conf'.format(_CLASS_MAPPING[_k]),
                  source=_v,)
 
 for _k,_v in moto_int_ds.items():
     motors_fig.circle(x='time',
                   y='intensity',
                   color=palette[_k],
-                  legend='moto{} intensity'.format(_k),
+                  legend='motor {} intensity'.format(_k),
                   source=_v,)
 
 motors_fig.legend.location = "top_right"
