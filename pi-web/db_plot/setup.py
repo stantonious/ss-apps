@@ -7,7 +7,7 @@ from distutils.core import setup
 
 version = '1.0'
 
-setup(name='db_gui',
+setup(name='db_plot',
       version=version,
       install_requires=['bokeh',
                         'numpy',
@@ -16,6 +16,6 @@ setup(name='db_gui',
                  ''',
       author='Bryan Staley',
       author_email='bryan.w.staley@gmail.com',
-      scripts=['run_db_gui.sh'],
-      packages=['db_gui'],
+      scripts=['run_db_plot.sh'],
+      packages=['db_plot'],
       )
