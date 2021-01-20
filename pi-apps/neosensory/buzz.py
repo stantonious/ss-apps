@@ -9,6 +9,7 @@ import logging
 import time
 from enum import Enum
 from yamnet import yamnet as yamnet_model
+from scipy import stats
 
 
 logger = logging.getLogger()
@@ -89,41 +90,35 @@ def _get_mel_pattern(
         mel,
         fps=None,
         desired_hz=None,
+        max_mag=None,
         buzz_max_intensity=None,):
     buzz_max_intensity=buzz_max_intensity or 255
+    max_mag=max_mag or 10 #TODO
     desired_hz = desired_hz or 4
     fps = fps or 1
 
-    # Remove fill frames
-    mel = mel[np.std(mel,axis=-1) > 0]
+    mel = np.exp(mel)
 
     total_frames = desired_hz * fps
     depth,remainder = divmod(mel.shape[0],total_frames)
-    to_buzz_intensity = buzz_max_intensity/64 # MEL has 64 bins in this case
+    to_buzz_intensity = buzz_max_intensity/16 # MEL has 64 bins spread across 4 
 
     #TODO Not throw away signal
-    mel = mel[remainder:,...].reshape(total_frames,depth,-1) #reshape to (time steps,samples,mel bins)
+    mel = mel[remainder:,...].reshape(total_frames,depth,4,-1) #reshape to (time steps,samples,4,bins in a motor bin)
+    mel = np.clip(mel,0,max_mag)
 
-    #max_idxs=np.argmax(np.max(mel,axis=-1),axis=-1) #max std for 64 bins within hz block
-
-    max_idxs=np.argmax(np.mean(mel,axis=1),axis=-1) #max std for 64 bins within hz block
-
-    max_mel_bins = []
-    for _i,_n in enumerate(max_idxs.tolist()):
-        max_mel_bins.append(np.argmax(mel[_i,_n,...]))
+    mel_4bin_max = np.max(np.max(mel,axis=-1),axis=1) #max in 4bin => Hz,Samples,4) => (Hz,4)
 
     #Scale to buzz intensity range
-    max_mel_bins = np.asarray(max_mel_bins,dtype=np.float32)
-    max_mel_bins *= to_buzz_intensity
+    def _get_buzz_intensities_per_motor(mags,mag_threshold=.1):
+        int_per_step=[]
+        to_buzz_intensities = buzz_max_intensity / max_mag
+        for _n in mags:
+            intensities = _n * to_buzz_intensities
+            int_per_step.append(intensities)
+        return np.asarray(int_per_step,dtype=np.float32)
 
-    # Add filler
-    max_mel_bins = max_mel_bins.reshape(-1,1) #add last dimension
-
-    # Add motor dimension
-    max_mel_bins = np.tile(max_mel_bins,(1,4))
-
-    #fill_frames = 62//desired_hz
-   # max_mel_bins = np.tile(max_mel_bins,(1,fill_frames))
+    max_mel_bins = _get_buzz_intensities_per_motor(mel_4bin_max)
 
     return max_mel_bins.reshape(-1).astype(np.int) #remove final dimension
 
