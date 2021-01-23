@@ -1,8 +1,12 @@
+A full set of software and tools to run the YAMNet (https://github.com/tensorflow/models/tree/master/research/audioset/yamnet) audio inference model on a Raspberry Pi 4b with SEEED 4 mic hat (https://wiki.seeedstudio.com/ReSpeaker_4_Mic_Array_for_Raspberry_Pi/)
+
+
 To Setup
 
 ```
+# Branch is either master or neosensory (for Buzz capability)
 cd /tmp
-wget https://raw.githubusercontent.com/stantonious/ss-apps/master/setup/scripts/ss-setup.sh
+wget https://raw.githubusercontent.com/stantonious/ss-apps/<branch>/setup/scripts/ss-setup.sh
 chmod +x ss-setup.sh
 ./ss-setup.sh
 ```
