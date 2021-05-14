@@ -1,7 +1,7 @@
 #!/bin/bash
 set -x 
 set -e
-branch=master
+branch=neosensory
 sudo apt -y update
 sudo apt -y full-upgrade
 
@@ -15,9 +15,10 @@ pushd ${tmp_folder}
 #install seeed mic array
 git clone https://github.com/respeaker/seeed-voicecard.git
 pushd seeed-voicecard
-sed -i 's/^FORCE/##FORCE/g' install.sh
-sed -i 's/#FORCE/FORCE/g' install.sh
-sudo ./install.sh --compat-kernel
+#sed -i 's/^FORCE/##FORCE/g' install.sh
+#sed -i 's/#FORCE/FORCE/g' install.sh
+#sudo ./install.sh --compat-kernel
+sudo ./install.sh 
 popd 
 
 #install system packages
@@ -34,6 +35,7 @@ sudo mkdir /var/log/ss && sudo chown pi:pi /var/log/ss
 sudo mkdir -p /ss/archive/audio 
 sudo mkdir -p /ss/archive/images
 sudo mkdir -p /ss/archive/inference
+sudo mkdir -p /ss/archive/products
 sudo mkdir -p /ss/labels
 sudo mkdir -p /ss/data
 sudo chown pi:pi -R /ss
@@ -104,12 +106,23 @@ sudo curl -XGET -o ${vggish_dir}/vggish_pca_params.npz "https://storage.googleap
 
 #TODO - Install from clone above?
 #install ss
-declare -a pkgs=("pi-core" "pi-apps/image" "pi-apps/leds" "pi-apps/br" "pi-apps/inf" "pi-apps/status" "pi-apps/debug" "pi-web/hist_plot" "pi-web/inf_gui" "pi-web/labeler" "pi-svc/audio_playback")
+declare -a pkgs=("pi-core" "pi-apps/image" "pi-apps/leds" "pi-apps/br" "pi-apps/inf" "pi-apps/status" "pi-apps/debug" "pi-web/neo_gui" "pi-web/hist_plot" "pi-web/inf_gui" "pi-web/labeler" "pi-svc/audio_playback")
 for i in "${pkgs[@]}"
 do
 	pip install --upgrade --no-deps --force-reinstall git+https://git@github.com/stantonious/ss-apps.git@${branch}#subdirectory="${i}"
 done
 
+#install ss (with deps
+declare -a pkgs=("pi-apps/neosensory")
+for i in "${pkgs[@]}"
+do
+	pip install --upgrade --force-reinstall git+https://git@github.com/stantonious/ss-apps.git@${branch}#subdirectory="${i}"
+done
+
+
+#TODO Remove or put into setup.py for pi-apps/inf
+#To fix keras issue with str doesn't contain decode...grrr
+pip install --upgrade h5py==2.10.0
 
 (crontab -l 2>/dev/null; echo "0 0 * * * find /ss/archive -type f -mtime +2 -delete") | crontab -
 
@@ -126,6 +139,8 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
 	fi
 fi
 
+#Useful aliases
+echo "alias svcls='systemctl list-units --type=service --state=running'" >> ~/.bashrc
 #clean up
 popd
 sudo rm -rf ${tmp_folder}

@@ -1,0 +1,20 @@
+{% extends base %}
+
+{% block title %}SoundScene{% endblock %}
+
+{% block postamble %}
+  <style>
+    {% include 'styles.css' %}
+  </style>
+{% endblock %}
+
+{% block contents %}
+  <div class="content">
+    <h1>Current SoundScene</h1>
+
+    <p></p>
+
+    {{ super() }}
+
+  </div>
+{% endblock %}

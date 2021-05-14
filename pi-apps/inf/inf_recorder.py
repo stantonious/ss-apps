@@ -9,11 +9,9 @@ import pika
 import numpy as np
 import datetime
 import json
-import os
 from sqlalchemy import create_engine
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session, scoped_session, sessionmaker
-from yamnet import yamnet as yamnet_model
 
 Base = automap_base()
 db_uri = 'postgresql+psycopg2://pi:raspberry@127.0.0.1:5432/ss'
@@ -52,7 +50,6 @@ if __name__ == '__main__':
             d = json.loads(body)
             idxs = np.asarray(d['idxs'])
             infs= np.asarray(d['inferences'])
-            mel=np.asarray(d['mel'])
             time=int(d['time'])
             sorted_idxs=np.argsort(infs)[::-1]
             infs = infs[sorted_idxs][:topk]

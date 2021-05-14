@@ -12,6 +12,7 @@ setup(name='inf_app',
       version=version,
       install_requires=['ss_core',
                         'psycopg2',
+                        'h5py==2.10.0'
                         ],
       description='''ss inference engine.
                  ''',
@@ -20,6 +21,6 @@ setup(name='inf_app',
       scripts=['classifier.py',
                'yamnet_classifier.py',
                'inf_recorder.py',
-               'mel_recorder.py'],
+               'product_recorder.py'],
       packages=[],
       )

@@ -1,12 +1,13 @@
 [Unit]
-Description=Record MEL spectograms
+Description=Buzz Device Service
 Wants=ss-yamnet-inf.service
 After=ss-yamnet-inf.service
 
 [Service]
-User=pi
+User=root
 Type=simple
-ExecStart=ss-mel-record.sh
+# Speech Dog Baby Water
+ExecStart=ss-buzz-inf.sh 0 20 69 282 128
 
 [Install]
 WantedBy=multi-user.target

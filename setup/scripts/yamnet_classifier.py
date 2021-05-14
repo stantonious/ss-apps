@@ -36,7 +36,7 @@ RATE = 16000
 CHUNK = 1024
 IDX = range(5)
 CHANNELS = 2
-# CHANNELS = 1
+#CHANNELS = 1
 
 AUD_ARCHIVE_SECONDS = 10
 
@@ -115,9 +115,10 @@ def infer(frm_rcv):
     logger.info('model ')
     try:
         yamnet = yamnet_model.yamnet_frames_model(params.Params())
-        yamnet.load_weights('/opt/soundscene/yamnet.h5')
     except Exception as e:
-        logger.exception('unable to load yamnet')
+        logger.exception('UGGGG')
+        sys.exit(1)
+    yamnet.load_weights('/opt/soundscene/yamnet.h5')
     logger.info('done model ')
     
     while True:
@@ -128,9 +129,11 @@ def infer(frm_rcv):
                 normalized_audio_1hz = np.mean(normalized_audio_1hz, axis=1)
 
             # returns [1,classes] classes=521
-            scores, emb,mel = yamnet.predict(normalized_audio_1hz,steps=1 )
+            #scores,_, mel = yamnet.predict(np.reshape(normalized_audio_1hz, [1, -1]), steps=1)
+            scores,emb, mel = yamnet.predict(normalized_audio_1hz, steps=1)
 
-            for _n in scores[:1]:#TODO use all 1 sec samples
+            #for _n in scores:#1 sec samples
+            for _n in scores[-1:]:#1 sec samples
                 top_idxs = np.argsort(_n)[::-1][:top_k]
                 inferences=_n[top_idxs]
 
@@ -138,8 +141,8 @@ def infer(frm_rcv):
                                                   routing_key='',
                                                   body=json.dumps(dict(time=aud_time,
                                                                        inferences=inferences.tolist(),
-                                                                       mel=mel[:96,...].tolist(),
-                                                                       embeddings=emb[1].tolist(),
+                                                                       mel=mel.tolist(),
+                                                                       embeddings=[],#no embeddings produced for yamnet
                                                                        idxs=top_idxs.tolist())))
         except Exception as e:
             logger.exception(e)
@@ -199,10 +202,10 @@ def monitor_processes():
 
 
 if __name__ == "__main__":
-    logger.error('staring inference')
+    logger.info('staring inference')
     inf_thread = Thread(target=infer, args=(frm_rcv,))
     inf_thread.start()
-    logger.error('started inference')
+    logger.info('started inference')
     aud_ctrl_thread = Thread(
         target=audio_control_processor, args=(aud_cmd_snd,))
     aud_ctrl_thread.start()

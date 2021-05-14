@@ -1,12 +1,12 @@
 [Unit]
-Description=User Interface Service
+Description=Buzz Device Service
 Wants=ss-yamnet-inf.service
 After=ss-yamnet-inf.service
 
 [Service]
-User=pi
+User=root
 Type=simple
-ExecStart=ss-gui.sh
+ExecStart=ss-buzz.sh 35 .7 mel 4 10 64
 
 [Install]
 WantedBy=multi-user.target
