@@ -45,12 +45,12 @@ if [ ! -d "./ss-apps" ]; then
     git clone --single-branch --branch ${branch} https://github.com/stantonious/ss-apps.git
 fi
 pushd ss-apps
-git checkout -b ${branch} && git pull -f origin ${branch}
+git checkout ${branch} && git pull -f origin ${branch}
 popd
 
 #install postgresql
 if [ ! -d "/etc/postgresql/11" ]; then
-    sudo apt-get install -y postgresql-11
+    sudo apt-get install -y postgresql-11 libpq-dev
     sudo -u postgres createuser -s pi
     psql -c 'create database ss' postgres
     psql -f ss-apps/sql/ss_schema.sql ss
