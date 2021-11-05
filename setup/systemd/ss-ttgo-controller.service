@@ -6,7 +6,7 @@ After=ss-yamnet-inf.service
 [Service]
 User=root
 Type=simple
-ExecStart=ss-buzz-controller.sh
+ExecStart=ss-ttgo-controller.sh
 
 [Install]
 WantedBy=multi-user.target

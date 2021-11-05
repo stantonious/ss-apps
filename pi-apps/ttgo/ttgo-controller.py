@@ -7,9 +7,7 @@ import pika
 import json
 import signal
 import logging
-from bleak import BleakClient
-from bleak import discover
-from neosensory_python import NeoDevice
+from bleak import BleakClient,discover
 import threading
 import multiprocessing
 
@@ -26,38 +24,31 @@ logger.addHandler(handler)
 frm_rcv, frm_snd = multiprocessing.Pipe(False)
 
 parser = argparse.ArgumentParser(
-    description='Handle communication with the buzz')
+    description='Handle communication with the lilygo ttwatch')
 
 parser.add_argument('--connection-attempts', type=int, default=2,required=False)
-parser.add_argument('--buzz-addr', type=str, default='DB:9F:31:D3:29:53', required=False)
+parser.add_argument('--ttgo-addr', type=str, default='3C:61:05:0D:7A:8E', required=False)
+parser.add_argument('--tt_rx_uuid', type=str, default='6e400002-b5a3-f393-e0a9-e50e24dcca9e', required=False)
 
 def notification_handler(sender, data):
     logger.info("{0}: {1}".format(sender, data))
 
-def _discover_neo(disc_time):
-    logger.info('discovering buzz %s seconds',disc_time)
-    devices = discover(disc_time)
-    buzz_addr = None
-    for d in devices:
-        if str(d).find("Buzz") > 0:
-            print("Found a Buzz! " + str(d) +
-                  "\r\nAddress substring: " + str(d)[:17])
-            # set the address to a found Buzz
-            buzz_addr = str(d)[:17]
-            break
-    return buzz_addr
+def buzz_along(connection_attempts,frm_rcv,ttgo_addr,tt_rx_uuid):
+    # 0x10 - Data start
+    # GB - Part of gadgetbridge protocol
+    # 0x20 - Space
+    # 0x0a - Part of gadgetbridge protocol
+    # 0x03 - Part of gadgetbridge protocol
 
-def buzz_along(connection_attempts,frm_rcv,buzz_addr=None):
-    async def run(loop,connection_attempts,frm_rcv,buzz_addr=None):
-        logger.info('staring buzz run loop')
+    ttgo_buzz_msg = bytearray('GB {"vib":"on"}'.encode())
+    ttgo_buzz_msg =bytearray([0x10]) + ttgo_buzz_msg + bytearray([0x20,0x0a,0x03])
+    print (ttgo_buzz_msg)
+
+    async def run(loop,connection_attempts,frm_rcv,ttgo_addr,tt_rx_uuid):
+        logger.info('staring ttgo controller run loop')
 
         try:
-            #TODO - discover neo
-            buzz_addr=buzz_addr or _discover_neo(10)
-    
-            client = BleakClient(buzz_addr, loop=loop)
-    
-            my_buzz = NeoDevice(client)
+            client = BleakClient(ttgo_addr, loop=loop)
     
             await asyncio.sleep(1)
     
@@ -81,46 +72,19 @@ def buzz_along(connection_attempts,frm_rcv,buzz_addr=None):
     
             logger.info("Connection State: {0}\r\n".format(connectionResult))
     
-            await my_buzz.enable_notifications(notification_handler)
-    
-            await asyncio.sleep(1)
-    
-            await my_buzz.request_developer_authorization()
-    
-            await my_buzz.accept_developer_api_terms()
-    
-            await my_buzz.pause_device_algorithm()
-
             logger.info('starting recv loop')
-            num_motors=4
-            running_default = False
+
             #drain
             while frm_rcv.poll():
                 _ = frm_rcv.recv()
+
             while True:
                 hz, frames_per_send,frames = frm_rcv.recv()
+                await client.write_gatt_char(tt_rx_uuid,ttgo_buzz_msg)
 
-                if None in frames:
-                    if not running_default:
-                        logger.info('Starting default algo')
-                        await my_buzz.resume_device_algorithm()
-                        running_default = True
-                    continue
-                else:
-                    if running_default:
-                        logger.info('Pausing default algo')
-                        await my_buzz.pause_device_algorithm()
-                        running_default = False
 
-                hz_sleep_time=1.0/hz
-                step_size = num_motors * frames_per_send
-                for _i in range(0,len(frames),step_size):
-                    frames_to_send=frames[_i:_i+step_size]
-                    logger.info('sending:%s',frames_to_send)
-                    await my_buzz.vibrate_motors(frames_to_send)
-                    await asyncio.sleep(hz_sleep_time-.1) #- for transmission time
         except Exception as e:
-            logger.exception('buzz processing loop failed')
+            logger.exception('ttgo processing loop failed')
 
             # Attempt disconnect
             try:
@@ -131,7 +95,7 @@ def buzz_along(connection_attempts,frm_rcv,buzz_addr=None):
             return
 
     loop = asyncio.new_event_loop()
-    loop.run_until_complete(run(loop,connection_attempts,frm_rcv,buzz_addr))
+    loop.run_until_complete(run(loop,connection_attempts,frm_rcv,ttgo_addr,tt_rx_uuid))
 
 
 
@@ -142,38 +106,40 @@ if __name__ == "__main__":
     connection = pika.BlockingConnection(
         pika.ConnectionParameters('localhost'))
     channel = connection.channel()
-    channel.exchange_declare(exchange='buzz',
+    channel.exchange_declare(exchange='ttgo',
                              exchange_type='fanout')
     result = channel.queue_declare(queue='', exclusive=True)
-    channel.queue_bind(queue=result.method.queue, exchange='buzz')
+    channel.queue_bind(queue=result.method.queue, exchange='ttgo')
 
-    buzz_thread = threading.Thread(target=buzz_along,args=(args.connection_attempts,
+    ttgo_thread = threading.Thread(target=buzz_along,args=(args.connection_attempts,
                                                            frm_rcv,
-                                                           args.buzz_addr))
-    buzz_thread.setDaemon(True)
-    buzz_thread.start()
+                                                           args.ttgo_addr,
+                                                           args.tt_rx_uuid))
+    ttgo_thread.setDaemon(True)
+    ttgo_thread.start()
 
     running_avg = 0.
 
     def _handle_kill(_signo,_stackframe):
-        global buzz_thread
+        global ttgo_thread
         frm_snd.send(None)
-        buzz_thread.join()
-        logger.info('killed buzz thread')
+        ttgo_thread.join()
+        logger.info('killed ttgo thread')
         channel.stop_consuming()
 
     signal.signal(signal.SIGTERM, _handle_kill)
 
     def _callback(ch, method, properties, body):
-        global buzz_thread
+        global ttgo_thread
         try:
 
-            if buzz_thread.is_alive() == False:
-                logger.warning('Buzz thread died...restarting')
-                buzz_thread = threading.Thread(target=buzz_along, args=(args.connection_attempts,
+            if ttgo_thread.is_alive() == False:
+                logger.warning('TTGO thread died...restarting')
+                ttgo_thread = threading.Thread(target=buzz_along, args=(args.connection_attempts,
                                                                         frm_rcv,
-                                                                        args.buzz_addr))
-                buzz_thread.start()
+                                                                        args.ttgo_addr,
+                                                                        args.tt_rx_uuid))
+                ttgo_thread.start()
 
             d = json.loads(body)
             desired_hz = d['hz']

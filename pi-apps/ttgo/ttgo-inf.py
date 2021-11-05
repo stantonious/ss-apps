@@ -54,7 +54,7 @@ if __name__ == "__main__":
     logger.info('args:%s',args)
     logger.info('args idxs:%s',args.idxs)
 
-    for _i in args.idx:
+    for _i in args.idxs:
         try:
             idxs.append(int(_i))
         except:
@@ -63,7 +63,7 @@ if __name__ == "__main__":
     running_avg = 0.
 
     def _callback(ch, method, properties, body):
-        confidence = [None] * len(args.idx)
+        confidence = [None] * len(args.idxs)
         global ttgo_connection
         global ttgo_channel
         global running_avg #poor man's convolution

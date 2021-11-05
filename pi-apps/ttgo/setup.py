@@ -8,7 +8,7 @@ from distutils.core import setup
 
 version = '1.0'
 
-setup(name='ss_neosensory',
+setup(name='ss_ttgo',
       version=version,
       install_requires=[
           'numpy',
@@ -19,6 +19,7 @@ setup(name='ss_neosensory',
                  ''',
       author='Bryan Staley',
       author_email='bryan.w.staley@gmail.com',
-      scripts=[ 'ttgo-controller.py',],
+      scripts=[ 'ttgo-controller.py',
+                'ttgo-inf.py'],
       packages=[],
       )

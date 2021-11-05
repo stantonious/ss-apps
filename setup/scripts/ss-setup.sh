@@ -113,7 +113,7 @@ do
 done
 
 #install ss (with deps
-declare -a pkgs=("pi-apps/neosensory")
+declare -a pkgs=("pi-apps/ttgo")
 for i in "${pkgs[@]}"
 do
 	pip install --upgrade --force-reinstall git+https://git@github.com/stantonious/ss-apps.git@${branch}#subdirectory="${i}"
