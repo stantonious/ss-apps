@@ -1,7 +1,7 @@
 #!/bin/bash
 set -x 
 set -e
-branch=neosensory
+branch=ttgo
 sudo apt -y update
 sudo apt -y full-upgrade
 
