@@ -33,6 +33,16 @@ parser.add_argument('--tt_rx_uuid', type=str, default='6e400002-b5a3-f393-e0a9-e
 def notification_handler(sender, data):
     logger.info("{0}: {1}".format(sender, data))
 
+def _get_buzz_msg(vib,idx,conf,avg):
+    bl_payload = dict(vib="on" if vib else "off",
+                      idx=idx,
+                      conf=conf,
+                      avg=avg)
+    ttgo_buzz_msg = bytearray(f'GB {json.dumps(bl_payload)}'.encode())
+    ttgo_buzz_msg =bytearray([0x10]) + ttgo_buzz_msg + bytearray([0x20,0x0a,0x03])
+    print (ttgo_buzz_msg)
+    return ttgo_buzz_msg
+
 def buzz_along(connection_attempts,frm_rcv,ttgo_addr,tt_rx_uuid):
     # 0x10 - Data start
     # GB - Part of gadgetbridge protocol
@@ -40,9 +50,7 @@ def buzz_along(connection_attempts,frm_rcv,ttgo_addr,tt_rx_uuid):
     # 0x0a - Part of gadgetbridge protocol
     # 0x03 - Part of gadgetbridge protocol
 
-    ttgo_buzz_msg = bytearray('GB {"vib":"on"}'.encode())
-    ttgo_buzz_msg =bytearray([0x10]) + ttgo_buzz_msg + bytearray([0x20,0x0a,0x03])
-    print (ttgo_buzz_msg)
+                  
 
     async def run(loop,connection_attempts,frm_rcv,ttgo_addr,tt_rx_uuid):
         logger.info('staring ttgo controller run loop')
@@ -79,8 +87,11 @@ def buzz_along(connection_attempts,frm_rcv,ttgo_addr,tt_rx_uuid):
                 _ = frm_rcv.recv()
 
             while True:
-                hz, frames_per_send,frames = frm_rcv.recv()
-                await client.write_gatt_char(tt_rx_uuid,ttgo_buzz_msg)
+                idx, conf,avg = frm_rcv.recv()
+                await client.write_gatt_char(tt_rx_uuid,_get_buzz_msg(vib=True,
+                                                                      idx=idx,
+                                                                      conf=conf,
+                                                                      avg=avg))
 
 
         except Exception as e:
@@ -142,16 +153,16 @@ if __name__ == "__main__":
                 ttgo_thread.start()
 
             d = json.loads(body)
-            desired_hz = d['hz']
-            frames_per_send = d['fps']
-            pattern = d['pattern']
+            idx = d['idx']
+            conf = d['conf']
+            avg = d['avg']
 
-            logger.info('Sending new pattern @ \n  hz: %s\n  fps: %d\n  %s',desired_hz,frames_per_send,pattern)
+            logger.info('Sending new pattern @ \n  idx: %s\n  conf: %d\n  avg: %s',idx,conf,avg)
 
             frm_snd.send([
-                desired_hz,
-                frames_per_send,
-                pattern])
+                idx,
+                conf,
+                avg])
 
         except Exception as e:
             logger.exception('doh')

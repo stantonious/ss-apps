@@ -1,0 +1,13 @@
+[Unit]
+Description=TTGO Device Service
+Wants=ss-yamnet-inf.service
+After=ss-yamnet-inf.service
+
+[Service]
+User=root
+Type=simple
+ExecStart=ss-ttgo-inf.sh 20 .40 
+
+[Install]
+WantedBy=multi-user.target
+
