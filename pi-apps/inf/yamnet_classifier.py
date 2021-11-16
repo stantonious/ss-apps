@@ -130,6 +130,7 @@ def infer(frm_rcv):
             # returns [1,classes] classes=521
             scores, emb,mel = yamnet.predict(normalized_audio_1hz,steps=1 )
 
+            print ('emb shape',emb.shape,flush=True)
             for _n in scores[:1]:#TODO use all 1 sec samples
                 top_idxs = np.argsort(_n)[::-1][:top_k]
                 inferences=_n[top_idxs]

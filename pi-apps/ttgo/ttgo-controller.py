@@ -5,6 +5,7 @@ import argparse
 import sys
 import pika
 import json
+import time
 import signal
 import logging
 from bleak import BleakClient,discover
@@ -29,31 +30,47 @@ parser = argparse.ArgumentParser(
 parser.add_argument('--connection-attempts', type=int, default=2,required=False)
 parser.add_argument('--ttgo-addr', type=str, default='3C:61:05:0D:7A:8E', required=False)
 parser.add_argument('--tt_rx_uuid', type=str, default='6e400002-b5a3-f393-e0a9-e50e24dcca9e', required=False)
+parser.add_argument('--tt_tx_uuid', type=str, default='6e400003-b5a3-f393-e0a9-e50e24dcca9e', required=False)
 
 def notification_handler(sender, data):
     logger.info("{0}: {1}".format(sender, data))
 
-def _get_buzz_msg(vib,idx,conf,avg):
-    bl_payload = dict(vib="on" if vib else "off",
-                      idx=idx,
-                      conf=conf,
-                      avg=avg)
+def _get_buzz_msg(msg):
+    bl_payload = msg
     ttgo_buzz_msg = bytearray(f'GB {json.dumps(bl_payload)}'.encode())
     ttgo_buzz_msg =bytearray([0x10]) + ttgo_buzz_msg + bytearray([0x20,0x0a,0x03])
     print (ttgo_buzz_msg)
     return ttgo_buzz_msg
 
-def buzz_along(connection_attempts,frm_rcv,ttgo_addr,tt_rx_uuid):
+def buzz_along(connection_attempts,frm_rcv,ttgo_addr,tt_rx_uuid,tt_tx_uuid):
     # 0x10 - Data start
     # GB - Part of gadgetbridge protocol
     # 0x20 - Space
     # 0x0a - Part of gadgetbridge protocol
     # 0x03 - Part of gadgetbridge protocol
 
+    lbl_connection = pika.BlockingConnection(
+        pika.ConnectionParameters('localhost'))
+    lbl_channel = lbl_connection.channel()
+    lbl_channel.exchange_declare(exchange='ttgo-label',
+                             exchange_type='fanout')
+
+
+    def label_notification_handler(sender, data):
+        payload = json.loads(data.decode())
+        print (payload)
+        print ('got data',flush=True)
+        lbl_channel.basic_publish(exchange='ttgo-label',
+                              routing_key='',
+                              body=json.dumps(dict(type="ttgo-label",
+                                                   time=time.time(),
+                                                   class_label=payload['class_label'],
+                                                   sample_time=payload['sample_time'],)))
+
                   
 
-    async def run(loop,connection_attempts,frm_rcv,ttgo_addr,tt_rx_uuid):
-        logger.info('staring ttgo controller run loop')
+    async def run(loop,connection_attempts,frm_rcv,ttgo_addr,tt_rx_uuid,tt_tx_uuid):
+        logger.info('starting ttgo controller run loop')
 
         try:
             client = BleakClient(ttgo_addr, loop=loop)
@@ -66,11 +83,11 @@ def buzz_along(connection_attempts,frm_rcv,ttgo_addr,tt_rx_uuid):
     
             while connectionResult == False and connection_attempts > 0:
                 try:
+                    connection_attempts-=1
                     await client.connect()
                     await asyncio.sleep(1)
                     logger.info('attempts left %s',connection_attempts)
                     connectionResult = await client.is_connected()
-                    connection_attempts-=1
                 except Exception:
                     logger.exception('Connection failed')
     
@@ -82,17 +99,28 @@ def buzz_along(connection_attempts,frm_rcv,ttgo_addr,tt_rx_uuid):
     
             logger.info('starting recv loop')
 
+            await client.start_notify(tt_tx_uuid,label_notification_handler)
+
+            logger.info('notification set')
+
             #drain
             while frm_rcv.poll():
                 _ = frm_rcv.recv()
 
             while True:
-                idx, conf,avg = frm_rcv.recv()
-                await client.write_gatt_char(tt_rx_uuid,_get_buzz_msg(vib=True,
-                                                                      idx=idx,
-                                                                      conf=conf,
-                                                                      avg=avg))
+                if frm_rcv.poll():
+                    msg = frm_rcv.recv()
+                    logger.info('Sending msg',msg)
 
+                    if msg is not None: 
+                        if not client.is_connected():
+                            logger.warning('client reconnecting........')
+                            await client.connect()
+                            await client.disconnect()
+                            await client.unpair()
+                        await client.write_gatt_char(tt_rx_uuid,_get_buzz_msg(msg))
+                else:
+                    await asyncio.sleep(.1)
 
         except Exception as e:
             logger.exception('ttgo processing loop failed')
@@ -101,12 +129,13 @@ def buzz_along(connection_attempts,frm_rcv,ttgo_addr,tt_rx_uuid):
             try:
                 logger.info('disconnecting')
                 await client.disconnect()
+                await client.unpair()
             except:
                 pass
             return
 
     loop = asyncio.new_event_loop()
-    loop.run_until_complete(run(loop,connection_attempts,frm_rcv,ttgo_addr,tt_rx_uuid))
+    loop.run_until_complete(run(loop,connection_attempts,frm_rcv,ttgo_addr,tt_rx_uuid,tt_tx_uuid))
 
 
 
@@ -124,8 +153,10 @@ if __name__ == "__main__":
 
     ttgo_thread = threading.Thread(target=buzz_along,args=(args.connection_attempts,
                                                            frm_rcv,
+                                                           channel,
                                                            args.ttgo_addr,
-                                                           args.tt_rx_uuid))
+                                                           args.tt_rx_uuid,
+                                                           args.tt_tx_uuid))
     ttgo_thread.setDaemon(True)
     ttgo_thread.start()
 
@@ -149,20 +180,14 @@ if __name__ == "__main__":
                 ttgo_thread = threading.Thread(target=buzz_along, args=(args.connection_attempts,
                                                                         frm_rcv,
                                                                         args.ttgo_addr,
-                                                                        args.tt_rx_uuid))
+                                                                        args.tt_rx_uuid,
+                                                                        args.tt_tx_uuid))
                 ttgo_thread.start()
 
             d = json.loads(body)
-            idx = d['idx']
-            conf = d['conf']
-            avg = d['avg']
+            logger.info('Sending new msg: %s\n  ',d)
 
-            logger.info('Sending new pattern @ \n  idx: %s\n  conf: %d\n  avg: %s',idx,conf,avg)
-
-            frm_snd.send([
-                idx,
-                conf,
-                avg])
+            frm_snd.send(d)
 
         except Exception as e:
             logger.exception('doh')

@@ -69,7 +69,6 @@ if __name__ == "__main__":
             d_idx = np.argwhere(np.asarray(d['idxs']) == idx)
 
             if d_idx.shape[0] >= 1: confidence = d['inferences'][d_idx[0,0]]
-            print ('conf ',confidence,flush=True)
 
             if confidence > args.conf_threshold:
                 logger.info('Idx:%s found with confidence: %s > %s...Buzzing!',d_idx,confidence,args.conf_threshold)
@@ -84,7 +83,9 @@ if __name__ == "__main__":
                 logger.info('sending buzz frame')
                 ttgo_channel.basic_publish(exchange='ttgo',
                                            routing_key='',
-                                           body=json.dumps(dict(time=time.time(),
+                                           body=json.dumps(dict(type="vibrate",
+                                                                time=time.time(),
+                                                                vib="on",
                                                                 idx=idx,
                                                                 conf=confidence,
                                                                 avg=running_avg)))

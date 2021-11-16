@@ -20,6 +20,8 @@ setup(name='ss_ttgo',
       author='Bryan Staley',
       author_email='bryan.w.staley@gmail.com',
       scripts=[ 'ttgo-controller.py',
+                'ttgo-labeler.py',
+                'ttgo-sampler.py',
                 'ttgo-inf.py'],
       packages=[],
       )

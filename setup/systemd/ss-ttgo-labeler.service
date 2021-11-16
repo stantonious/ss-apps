@@ -1,0 +1,13 @@
+[Unit]
+Description=TTGO Device Service
+Wants=ss-yamnet-inf.service
+After=ss-ttgo-controller.service
+
+[Service]
+User=root
+Type=simple
+ExecStart=ss-ttgo-labeler.sh /opt/soundscene/ss-speech-classifier.h5 0 .8
+
+[Install]
+WantedBy=multi-user.target
+
