@@ -22,6 +22,7 @@ setup(name='ss_ttgo',
       scripts=[ 'ttgo-controller.py',
                 'ttgo-labeler.py',
                 'ttgo-sampler.py',
+                'ttgo-class-train.py',
                 'ttgo-inf.py'],
       packages=[],
       )
